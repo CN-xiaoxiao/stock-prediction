@@ -1,11 +1,10 @@
 package com.xiaoxiao.stockbackend.config;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.xiaoxiao.stockbackend.entity.RestBean;
 import com.xiaoxiao.stockbackend.entity.dto.Account;
 import com.xiaoxiao.stockbackend.entity.vo.response.AuthorizeVO;
 import com.xiaoxiao.stockbackend.filter.JwtAuthorizeFilter;
-import com.xiaoxiao.stockbackend.mapper.AccountMapper;
+import com.xiaoxiao.stockbackend.service.AuthorizeService;
 import com.xiaoxiao.stockbackend.utils.JwtUtils;
 import jakarta.annotation.Resource;
 import jakarta.servlet.ServletException;
@@ -20,9 +19,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
@@ -32,7 +29,7 @@ import java.io.PrintWriter;
 public class SecurityConfiguration {
 
     @Resource
-    AccountMapper accountMapper;
+    AuthorizeService authorizeService;
 
     @Resource
     JwtUtils jwtUtils;
@@ -76,7 +73,7 @@ public class SecurityConfiguration {
         PrintWriter writer = response.getWriter();
 
         User user = (User)authentication.getPrincipal();
-        Account account = accountMapper.findAccountByNameOrEmail(user.getUsername());
+        Account account = authorizeService.findAccountByNameOrEmail(user.getUsername());
         String token = jwtUtils.createJwt(user, account.getId(), account.getUsername());
 
         AuthorizeVO authorizeVO = account.asViewObject(AuthorizeVO.class, v -> {

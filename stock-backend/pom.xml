@@ -70,6 +70,18 @@
             <version>4.3.0</version>
         </dependency>
 
+        <!-- mail模块 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
+        <!-- rabbitmq -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
         <!-- 测试模块 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
