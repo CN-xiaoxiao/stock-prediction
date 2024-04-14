@@ -23,6 +23,9 @@ public class MailQueueListener {
     @Value("${spring.mail.username}")
     String username;
 
+    @Value("${spring.mail.nickname}")
+    String nickname;
+
     /**
      * 处理邮件发送
      * @param data 邮件信息
@@ -58,7 +61,7 @@ public class MailQueueListener {
         message.setSubject(title);
         message.setText(content);
         message.setTo(email);
-        message.setFrom(username);
+        message.setFrom(nickname+'<'+username+'>');
         return message;
     }
 }

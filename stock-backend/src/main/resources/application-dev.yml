@@ -3,6 +3,7 @@ spring:
     host: smtp.163.com
     username: 17375603959@163.com
     password: LFQKZPKPIXEDDEDN
+    nickname: 玲落尘肖
   rabbitmq:
     addresses: localhost
     username: guest
