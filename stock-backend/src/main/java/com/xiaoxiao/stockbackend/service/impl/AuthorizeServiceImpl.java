@@ -1,6 +1,7 @@
 package com.xiaoxiao.stockbackend.service.impl;
 
 import com.xiaoxiao.stockbackend.entity.dto.Account;
+import com.xiaoxiao.stockbackend.entity.vo.request.EmailRegisterVO;
 import com.xiaoxiao.stockbackend.mapper.AccountMapper;
 import com.xiaoxiao.stockbackend.service.AuthorizeService;
 import com.xiaoxiao.stockbackend.utils.Const;
@@ -16,6 +17,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
@@ -75,6 +77,45 @@ public class AuthorizeServiceImpl implements AuthorizeService {
                     .set(Const.VERIFY_EMAIL_DATA + email, code, 3, TimeUnit.MINUTES);
             return null;
         }
+    }
+
+    @Override
+    public String registerEmailAccount(EmailRegisterVO vo) {
+        String email = vo.getEmail();
+        String code = this.getEmailVerifyCode(email);
+        if (code == null) return "请先获取验证码";
+        if (!code.equals(vo.getCode())) return "验证码错误，请重新输入";
+        String username = vo.getUsername();
+        if (this.existsAccountByEmail(email)) return "该邮箱已被注册，请使用其他邮件地址";
+        if (this.existsAccountByName(username)) return "该用户名已被使用，请使用其他用户名";
+        String password = passwordEncoder.encode(vo.getPassword());
+        Account account = new Account(null, username, password, email,
+                "user", null, new Date());
+        boolean flag = accountMapper.addAccount(account);
+        if (flag) {
+            this.deleteEmailVerifyCode(email);
+            return null;
+        } else {
+            return "服务器内部错误，注册失败";
+        }
+    }
+
+    private void deleteEmailVerifyCode(String email) {
+        stringRedisTemplate.delete(Const.VERIFY_EMAIL_DATA + email);
+    }
+
+    private boolean existsAccountByName(String username) {
+        Account account = accountMapper.findAccountByNameOrEmail(username);
+        return account != null;
+    }
+
+    private boolean existsAccountByEmail(String email) {
+        Account account = accountMapper.findAccountByNameOrEmail(email);
+        return account != null;
+    }
+
+    private String getEmailVerifyCode(String email) {
+        return stringRedisTemplate.opsForValue().get(Const.VERIFY_EMAIL_DATA + email);
     }
 
     private String createVerifyCode(int bit, boolean isNum) {
