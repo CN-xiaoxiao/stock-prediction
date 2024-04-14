@@ -1,12 +1,13 @@
 package com.xiaoxiao.stockbackend.entity.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.xiaoxiao.stockbackend.entity.BaseData;
 import lombok.Data;
 
 import java.util.Date;
 
 @Data
-public class Account {
+public class Account implements BaseData {
     private int id;
     private String username;
     private String password;
