@@ -5,6 +5,8 @@ spring:
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
   security:
+    filter:
+      order: -100
     jwt:
       key: asdfghjkl123456
       expire: 7
