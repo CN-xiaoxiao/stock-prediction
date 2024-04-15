@@ -1,6 +1,7 @@
 package com.xiaoxiao.stockbackend.mapper;
 
 import com.xiaoxiao.stockbackend.entity.dto.Account;
+import com.xiaoxiao.stockbackend.entity.vo.request.EmailResetVO;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;
 
@@ -14,4 +15,7 @@ public interface AccountMapper {
     @Insert("insert into account (username, password, email, role, image, createtime)" +
             " VALUES (#{username}, #{password}, #{email}, #{role}, #{image}, #{createtime})")
     boolean addAccount(Account account);
+
+    @Update("update account set password = #{password} where email = #{email}")
+    boolean updatePasswordByEmail(EmailResetVO vo);
 }

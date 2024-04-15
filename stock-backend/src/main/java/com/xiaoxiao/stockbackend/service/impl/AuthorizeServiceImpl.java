@@ -1,7 +1,10 @@
 package com.xiaoxiao.stockbackend.service.impl;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.xiaoxiao.stockbackend.entity.dto.Account;
+import com.xiaoxiao.stockbackend.entity.vo.request.ConfirmResetVO;
 import com.xiaoxiao.stockbackend.entity.vo.request.EmailRegisterVO;
+import com.xiaoxiao.stockbackend.entity.vo.request.EmailResetVO;
 import com.xiaoxiao.stockbackend.mapper.AccountMapper;
 import com.xiaoxiao.stockbackend.service.AuthorizeService;
 import com.xiaoxiao.stockbackend.utils.Const;
@@ -99,6 +102,38 @@ public class AuthorizeServiceImpl implements AuthorizeService {
             return "服务器内部错误，注册失败";
         }
     }
+
+    @Override
+    public String resetConfirm(ConfirmResetVO vo) {
+        String email = vo.getEmail();
+        String code = stringRedisTemplate.opsForValue().get(Const.VERIFY_EMAIL_DATA + email);
+        if (code == null) return "请先获取验证码";
+        if (!code.equals(vo.getCode())) return "验证码错误，请重新输入";
+        return null;
+    }
+
+    @Override
+    public String resetEmailAccountPassword(EmailResetVO vo) {
+        String email = vo.getEmail();
+        String verify = this.resetConfirm(new ConfirmResetVO(email, vo.getCode()));
+        if (verify != null) return verify;
+        vo.setPassword(passwordEncoder.encode(vo.getPassword()));
+        boolean flag = accountMapper.updatePasswordByEmail(vo);
+        if (flag) {
+            deleteEmailVerifyCode(email);
+            this.askSuccessEmail(email);
+            return null;
+        }
+        return "更新失败，请联系管理员";
+    }
+
+    private void askSuccessEmail(String email) {
+        Account account = accountMapper.findAccountByNameOrEmail(email);
+        String jsonString = JSONObject.toJSONString(account);
+        Map<String, Object> data = Map.of("type", "resetSuccess", "email", email, "account", jsonString);
+        amqpTemplate.convertAndSend("mail.direct", "mail", data);
+    }
+
 
     private void deleteEmailVerifyCode(String email) {
         stringRedisTemplate.delete(Const.VERIFY_EMAIL_DATA + email);
