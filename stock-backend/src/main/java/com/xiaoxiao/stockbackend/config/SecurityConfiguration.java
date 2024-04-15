@@ -76,12 +76,16 @@ public class SecurityConfiguration {
         Account account = authorizeService.findAccountByNameOrEmail(user.getUsername());
         String token = jwtUtils.createJwt(user, account.getId(), account.getUsername());
 
-        AuthorizeVO authorizeVO = account.asViewObject(AuthorizeVO.class, v -> {
-            v.setToken(token);
-            v.setExpires(jwtUtils.expireTime());
-        });
+        if (token == null) {
+            writer.write(RestBean.forbidden("登录频繁，请稍后再试").asJsonString());
+        } else {
+            AuthorizeVO authorizeVO = account.asViewObject(AuthorizeVO.class, v -> {
+                v.setToken(token);
+                v.setExpires(jwtUtils.expireTime());
+            });
 
-        writer.write(RestBean.success(authorizeVO).asJsonString());
+            writer.write(RestBean.success(authorizeVO).asJsonString());
+        }
     }
 
     private void onAuthenticationFailure(HttpServletRequest request,

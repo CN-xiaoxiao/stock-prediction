@@ -15,6 +15,10 @@ spring:
     jwt:
       key: asdfghjkl123456
       expire: 7
+      limit:
+        base: 10
+        upgrade: 300
+        frequency: 30
   datasource:
     url: jdbc:mysql://localhost:3306/prediction
     username: root
@@ -30,3 +34,7 @@ spring:
   web:
     verify:
       mail-limit: 60
+    flow:
+      period: 3
+      limit: 50
+      block: 30
