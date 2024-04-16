@@ -38,3 +38,6 @@ spring:
       period: 3
       limit: 50
       block: 30
+    tushare:
+      token: 02bc5e5f1d7b4dbd77db7f84bd561074ea03accf39fc6fabe1ddd9c6
+      url: http://api.tushare.pro
