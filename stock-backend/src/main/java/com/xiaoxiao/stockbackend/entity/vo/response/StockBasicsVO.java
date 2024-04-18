@@ -1,13 +1,11 @@
-package com.xiaoxiao.stockbackend.entity.dto;
+package com.xiaoxiao.stockbackend.entity.vo.response;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.experimental.Accessors;
 
 @Data
-@Accessors(chain = true)
-public class StockBasicsDTO {
-    private int id;
-    private long sid;
+@AllArgsConstructor
+public class StockBasicsVO {
     private String tsCode;
     private String symbol;
     private String name;

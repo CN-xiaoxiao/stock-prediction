@@ -3,9 +3,12 @@ package com.xiaoxiao.stockbackend.utils;
 import com.alibaba.fastjson2.JSONObject;
 import com.xiaoxiao.stockbackend.entity.vo.request.StockApiVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockApiResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -17,6 +20,7 @@ import java.net.http.HttpResponse;
  */
 @Component
 public class NetUtils {
+    private static final Logger log = LoggerFactory.getLogger(NetUtils.class);
     private final HttpClient client = HttpClient.newHttpClient();
 
     @Value("${spring.web.tushare.token}")
@@ -41,7 +45,11 @@ public class NetUtils {
                 .build();
 
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        StockApiResponse stockApiResponse = JSONObject.parseObject(response.body(), StockApiResponse.class);
+        return stockApiResponse;
+    }
 
-        return JSONObject.parseObject(response.body(), StockApiResponse.class);
+    public String updateToken() {
+        return null;
     }
 }

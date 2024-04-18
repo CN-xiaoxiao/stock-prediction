@@ -3,6 +3,9 @@ package com.xiaoxiao.stockbackend.entity.vo.response;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.xiaoxiao.stockbackend.utils.ObjectUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -15,6 +18,7 @@ import java.util.List;
  * @param data 返回数据
  * @param has_more 是否还有数据
  */
+@Slf4j
 public record StockApiResponse(String request_id, int code, Object data, boolean has_more) {
 
     /**
@@ -32,9 +36,13 @@ public record StockApiResponse(String request_id, int code, Object data, boolean
      * @return item集合
      */
     public <T>ArrayList<T> getItems(Class<T> clazz) {
-
-        List<ArrayList> items = JSONObject.parseObject(JSONObject.toJSONString(data))
-                .getJSONArray("items").toJavaList(ArrayList.class);
+        List<ArrayList> items = null;
+        try {
+             items = JSONObject.parseObject(JSONObject.toJSONString(data))
+                    .getJSONArray("items").toJavaList(ArrayList.class);
+        } catch (Exception e) {
+            log.error("获取数据失败 : {}", e.getMessage());
+        }
         ArrayList<T> result = new ArrayList<>();
 
         try {
