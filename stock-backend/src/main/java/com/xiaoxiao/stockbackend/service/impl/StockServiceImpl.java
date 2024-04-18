@@ -1,7 +1,5 @@
 package com.xiaoxiao.stockbackend.service.impl;
 
-import com.alibaba.fastjson2.JSONObject;
-import com.alibaba.fastjson2.TypeReference;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.xiaoxiao.stockbackend.entity.dto.StockBasicsDTO;
@@ -20,7 +18,6 @@ import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -33,8 +30,6 @@ import java.util.*;
 @Service
 public class StockServiceImpl implements StockService {
 
-    @Value("${spring.web.tushare.token}")
-    String tushareToken;
     @Resource
     NetUtils netUtils;
     @Resource
@@ -43,6 +38,7 @@ public class StockServiceImpl implements StockService {
     SnowflakeIdGenerator idGenerator;
     @Resource
     private SqlSessionFactory sqlSessionFactory;
+
 
     /**
      * 得到每天的股票交易数据
@@ -58,7 +54,7 @@ public class StockServiceImpl implements StockService {
         // TODO 股票会出现休市
         Map<String, String> params = Map.of("ts_code", tsCode, "start_date", date, "end_date", date);
 
-        StockApiVO vo = createApiVO("daily", tushareToken, params, null);
+        StockApiVO vo = createApiVO("daily", netUtils.getToken(), params, null);
         StockApiResponse response;
 
         try {
@@ -103,10 +99,22 @@ public class StockServiceImpl implements StockService {
         int count = stockBasicsMapper.countStockBasics();
         if (count <= 0) {
             Map<String, String> params = Map.of("list_status","L");
-            StockApiVO vo = createApiVO("stock_basic", tushareToken, params, null);
+            StockApiVO vo = createApiVO("stock_basic", netUtils.getToken(), params, null);
 
             try(SqlSession sqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH, false)) {
-                ArrayList<StockBasicsVO> items = netUtils.doPost(vo).getItems(StockBasicsVO.class);
+                int times = 3;
+                StockApiResponse stockApiResponse;
+                // 失败重试，使用另外的token
+                do {
+                     stockApiResponse = netUtils.doPost(vo);
+                    if (stockApiResponse.data() == null) {
+                        netUtils.updateToken(netUtils.getToken());
+                    } else {
+                        break;
+                    }
+                } while (--times > 0);
+
+                ArrayList<StockBasicsVO> items = stockApiResponse.getItems(StockBasicsVO.class);
 
                 List<StockBasicsDTO> dtos = null;
                 if (items != null) {
@@ -132,28 +140,7 @@ public class StockServiceImpl implements StockService {
                 return "数据获取失败";
             }
         } else {
-            log.info("已有数据，正在进行更新操作");
-            List<String> delisting = this.isDelisting();
-            if (delisting != null) {
-                // 处理退市股票
-                log.info("正在处理退市股票");
-            }
-
-            List<StockBasicsVO> newBasicsVos = this.getNewStockBasicsData();
-            if (newBasicsVos != null && !newBasicsVos.isEmpty()) {
-                log.info("正在处理添加新股票操作");
-                List<StockBasicsVO> newStockBasicsData = this.getNewStockBasicsData();
-                if (newStockBasicsData == null || newStockBasicsData.isEmpty()) {
-                    return null;
-                } else {
-                    for (StockBasicsVO data : newStockBasicsData) {
-                        StockBasicsDTO dto = new StockBasicsDTO();
-                        BeanUtils.copyProperties(data, dto);
-                        stockBasicsMapper.insertStockBasics(dto);
-                    }
-                }
-            }
-
+            if (doDelistingAndNewStockBasics()) return null;
         }
         return null;
     }
@@ -168,11 +155,10 @@ public class StockServiceImpl implements StockService {
      * @return 新上市的 StockBasicsVO 股票集合
      */
     private List<StockBasicsVO> getNewStockBasicsData() {
-//        DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
-//        String date = dateFormat.format(new Date());
-        String date = "20240325";
+        DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+        String date = dateFormat.format(new Date());
         Map<String, String> params = Map.of("start_date",date, "end_date", date);
-        StockApiVO apiVO = createApiVO("new_share", tushareToken, params, null);
+        StockApiVO apiVO = createApiVO("new_share", netUtils.getToken(), params, null);
 
         try {
             StockApiResponse stockApiResponse = netUtils.doPost(apiVO);
@@ -205,7 +191,6 @@ public class StockServiceImpl implements StockService {
         return null;
     }
 
-
     /**
      * 快速创建第三方api接口的请求类
      * @param apiName api接口名称
@@ -218,7 +203,34 @@ public class StockServiceImpl implements StockService {
         return new StockApiVO(apiName, token, params, fields);
     }
 
+    /**
+     * 做退市判断和新上市股票的判断与逻辑
+     * @return
+     */
+    private boolean doDelistingAndNewStockBasics() {
+        log.info("已有数据，正在进行更新操作");
+        List<String> delisting = this.isDelisting();
+        if (delisting != null) {
+            // 处理退市股票
+            log.info("正在处理退市股票");
+        }
 
+        List<StockBasicsVO> newBasicsVos = this.getNewStockBasicsData();
+        if (newBasicsVos != null && !newBasicsVos.isEmpty()) {
+            log.info("正在处理添加新股票操作");
+            List<StockBasicsVO> newStockBasicsData = this.getNewStockBasicsData();
+            if (newStockBasicsData == null || newStockBasicsData.isEmpty()) {
+                return true;
+            } else {
+                for (StockBasicsVO data : newStockBasicsData) {
+                    StockBasicsDTO dto = new StockBasicsDTO();
+                    BeanUtils.copyProperties(data, dto);
+                    stockBasicsMapper.insertStockBasics(dto);
+                }
+            }
+        }
+        return false;
+    }
 
     private void saveJson(String json, String fileName) {
         try (FileWriter fileWriter = new FileWriter(fileName)) {

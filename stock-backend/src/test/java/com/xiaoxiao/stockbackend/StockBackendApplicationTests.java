@@ -78,4 +78,13 @@ class StockBackendApplicationTests {
 //            System.out.println(stockRealVO);
 //        }
     }
+
+    @Test
+    public void testSplit() {
+        String s = "123";
+        String[] split = s.split(",");
+        for (String string : split) {
+            System.out.println(string);
+        }
+    }
 }
