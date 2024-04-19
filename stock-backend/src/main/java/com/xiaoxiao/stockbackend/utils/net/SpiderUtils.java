@@ -45,7 +45,31 @@ public class SpiderUtils {
         HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString());
         String body = send.body();
 
-        return this.getData(body);
+        return this.getHotStockData(body);
+    }
+
+    /**
+     * 从深圳证券交易所爬取交易日历
+     * @param date 时间 格式如下: 2024-03 或者 2024-10
+     * @return 返回一个不是交易日的字符串集合。
+     */
+    public List<String> getTradingDay(String date) throws IOException, InterruptedException {
+        HttpClient client = HttpClient.newHttpClient();
+        Random random = new Random();
+        Map<String, String> prams = Map.of("month", date, "random", String.valueOf(random.nextDouble()));
+        String baseUrl = "http://www.szse.cn/api/report/exchange/onepersistenthour/monthList";
+        String url = this.buildUrlWithParams(baseUrl, prams);
+        HttpRequest request = HttpRequest.newBuilder()
+                .GET()
+                .uri(URI.create(url))
+                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) Gecko/20100101 Firefox/124.0")
+                .header("Referer", "https://www.szse.cn/aboutus/calendar/")
+                .header("Content-Type", "application/javascript; charset=UTF-8")
+                .build();
+        client.sslParameters();
+        HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        return this.getTradingDayData(send.body());
     }
 
     /**
@@ -102,7 +126,7 @@ public class SpiderUtils {
      * @param connect 爬取到的数据集
      * @return 热门股票的实体类集合（HotStockVO）
      */
-    private List<HotStockVO> getData(String connect) {
+    private List<HotStockVO> getHotStockData(String connect) {
 
         List<HotStockVO> list = new ArrayList<HotStockVO>();
 
@@ -119,6 +143,20 @@ public class SpiderUtils {
             list.add(stock);
         }
 
+        return list;
+    }
+
+    private List<String> getTradingDayData(String data) {
+        List<String> list = new ArrayList<>();
+        JSONObject jsonObject = JSONObject.parseObject(data);
+        JSONArray jsonArray = jsonObject.getJSONArray("data");
+        jsonArray.forEach(item -> {
+            JSONObject jsonObject1 = JSONObject.parseObject(item.toString());
+            Object o = jsonObject1.get("jybz");
+            if (o != null && o.toString().equals("0")) {
+                list.add(jsonObject1.get("jyrq").toString());
+            }
+        });
         return list;
     }
 }

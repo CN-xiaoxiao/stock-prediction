@@ -19,9 +19,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @SpringBootTest
 class StockBackendApplicationTests {
@@ -98,9 +97,15 @@ class StockBackendApplicationTests {
     @Test
     public void testSpider() throws IOException, InterruptedException {
         SpiderUtils spiderUtils = new SpiderUtils();
-        List<HotStockVO> hotStock = spiderUtils.getHotStock(1, 20);
-        for (HotStockVO hotStockVO : hotStock) {
-            System.out.println(hotStockVO);
+//        List<HotStockVO> hotStock = spiderUtils.getHotStock(1, 20);
+//        for (HotStockVO hotStockVO : hotStock) {
+//            System.out.println(hotStockVO);
+//        }
+        List<String> tradingDay = spiderUtils.getTradingDay("2024-03");
+        if (tradingDay != null && !tradingDay.isEmpty()) {
+            for (String s : tradingDay) {
+                System.out.println(s);
+            }
         }
     }
 
@@ -108,5 +113,15 @@ class StockBackendApplicationTests {
     public void testRedis() throws IOException, InterruptedException {
         String s = stringRedisTemplate.opsForValue().get("jwt:blacklist:d8967956-1b53-47fe-8a30-c25bac4bf406");
         System.out.println(s+"13");
+    }
+
+    @Test
+    public void testDate() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM");
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date());
+        calendar.set(calendar.get(Calendar.YEAR), Calendar.JANUARY,1);
+        String format = sdf.format(calendar.getTime());
+        System.out.println(format);
     }
 }
