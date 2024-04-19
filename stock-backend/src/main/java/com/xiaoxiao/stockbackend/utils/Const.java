@@ -14,4 +14,5 @@ public class Const {
     public final static String FLOW_LIMIT_COUNTER = "flow:counter:";
     public final static String FLOW_LIMIT_BLOCK = "flow:block:";
 
+    public final static String STOCK_HOT_LIST = "stock:hot:";
 }

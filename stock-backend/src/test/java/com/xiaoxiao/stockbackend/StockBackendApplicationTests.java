@@ -3,11 +3,15 @@ package com.xiaoxiao.stockbackend;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.xiaoxiao.stockbackend.entity.vo.request.StockApiVO;
+import com.xiaoxiao.stockbackend.entity.vo.response.HotStockVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockApiResponse;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockRealVO;
 import com.xiaoxiao.stockbackend.utils.ObjectUtils;
+import com.xiaoxiao.stockbackend.utils.net.SpiderUtils;
+import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -16,10 +20,13 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @SpringBootTest
 class StockBackendApplicationTests {
+    @Resource
+    StringRedisTemplate stringRedisTemplate;
 
     @Test
     void contextLoads() {
@@ -86,5 +93,20 @@ class StockBackendApplicationTests {
         for (String string : split) {
             System.out.println(string);
         }
+    }
+
+    @Test
+    public void testSpider() throws IOException, InterruptedException {
+        SpiderUtils spiderUtils = new SpiderUtils();
+        List<HotStockVO> hotStock = spiderUtils.getHotStock(1, 20);
+        for (HotStockVO hotStockVO : hotStock) {
+            System.out.println(hotStockVO);
+        }
+    }
+
+    @Test
+    public void testRedis() throws IOException, InterruptedException {
+        String s = stringRedisTemplate.opsForValue().get("jwt:blacklist:d8967956-1b53-47fe-8a30-c25bac4bf406");
+        System.out.println(s+"13");
     }
 }

@@ -10,7 +10,7 @@ import com.xiaoxiao.stockbackend.entity.vo.response.StockBasicsVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockRealVO;
 import com.xiaoxiao.stockbackend.mapper.StockBasicsMapper;
 import com.xiaoxiao.stockbackend.service.StockService;
-import com.xiaoxiao.stockbackend.utils.NetUtils;
+import com.xiaoxiao.stockbackend.utils.net.NetUtils;
 import com.xiaoxiao.stockbackend.utils.SnowflakeIdGenerator;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -143,6 +143,16 @@ public class StockServiceImpl implements StockService {
             if (doDelistingAndNewStockBasics()) return null;
         }
         return null;
+    }
+
+    /**
+     * 根据ts_code来查询股票基础信息
+     * @param tsCode 股票ts代码
+     * @return StockBasicsDTO 股票基础信息实体类
+     */
+    @Override
+    public StockBasicsDTO getStockBasicsDTO(String tsCode) {
+        return stockBasicsMapper.fuzzyQueryStockBasicsByTsCode(tsCode);
     }
 
     // 判断是否退市，第三方接口没有，只能爬虫爬取。

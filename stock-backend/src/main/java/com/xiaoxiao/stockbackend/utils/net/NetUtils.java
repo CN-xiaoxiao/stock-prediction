@@ -1,15 +1,15 @@
-package com.xiaoxiao.stockbackend.utils;
+package com.xiaoxiao.stockbackend.utils.net;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.xiaoxiao.stockbackend.entity.vo.request.StockApiVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockApiResponse;
 import jakarta.annotation.PostConstruct;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -33,6 +33,7 @@ public class NetUtils {
     String url;
 
     ArrayList<String> tokens = new ArrayList<>();
+    @Getter
     String token;
 
     /**
@@ -51,8 +52,7 @@ public class NetUtils {
                 .build();
 
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        StockApiResponse stockApiResponse = JSONObject.parseObject(response.body(), StockApiResponse.class);
-        return stockApiResponse;
+        return JSONObject.parseObject(response.body(), StockApiResponse.class);
     }
 
     public String updateToken(String token) {
@@ -67,9 +67,5 @@ public class NetUtils {
         String[] split = tushareToken.split(",");
         tokens.addAll(Arrays.asList(split));
         token = tokens.get(0);
-    }
-
-    public String getToken() {
-        return this.token;
     }
 }

@@ -39,4 +39,8 @@ public interface StockBasicsMapper {
     @Select("select * from stock_basics where ts_code = #{tsCode}")
     @ResultMap("stockBasicsMap")
     StockBasicsDTO selectStockBasicsByTsCode(String tsCode);
+
+    @Select("select * from stock_basics where ts_code like concat(#{tsCode},'%')")
+    @ResultMap("stockBasicsMap")
+    StockBasicsDTO fuzzyQueryStockBasicsByTsCode(String tsCode);
 }
