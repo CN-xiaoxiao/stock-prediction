@@ -3,6 +3,7 @@ package com.xiaoxiao.stockbackend.utils.net;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.xiaoxiao.stockbackend.entity.vo.response.HotStockVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -17,6 +18,7 @@ import java.util.*;
 /**
  * 爬虫工具
  */
+@Slf4j
 @Component
 public class SpiderUtils {
 
@@ -67,9 +69,10 @@ public class SpiderUtils {
                 .header("Content-Type", "application/javascript; charset=UTF-8")
                 .build();
         client.sslParameters();
+        log.info("向 {} 发起网络请求", baseUrl);
         HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-        return this.getTradingDayData(send.body());
+        System.out.println(send);
+        return send.statusCode() == 200 ? this.getTradingDayData(send.body()) : null;
     }
 
     /**

@@ -1,14 +1,18 @@
 package com.xiaoxiao.stockbackend.service.impl;
 
+import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson2.TypeReference;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.xiaoxiao.stockbackend.entity.dto.StockBasicsDTO;
+import com.xiaoxiao.stockbackend.entity.dto.StockMarketDTO;
 import com.xiaoxiao.stockbackend.entity.vo.request.StockApiVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.NewStockVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockApiResponse;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockBasicsVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockRealVO;
 import com.xiaoxiao.stockbackend.mapper.StockBasicsMapper;
+import com.xiaoxiao.stockbackend.mapper.StockMarketMapper;
 import com.xiaoxiao.stockbackend.service.StockService;
 import com.xiaoxiao.stockbackend.utils.net.NetUtils;
 import com.xiaoxiao.stockbackend.utils.SnowflakeIdGenerator;
@@ -26,6 +30,9 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+/**
+ * 股票基础数据的服务类
+ */
 @Slf4j
 @Service
 public class StockServiceImpl implements StockService {
@@ -34,6 +41,8 @@ public class StockServiceImpl implements StockService {
     NetUtils netUtils;
     @Resource
     StockBasicsMapper stockBasicsMapper;
+    @Resource
+    StockMarketMapper stockMarketMapper;
     @Resource
     SnowflakeIdGenerator idGenerator;
     @Resource
@@ -153,6 +162,29 @@ public class StockServiceImpl implements StockService {
     @Override
     public StockBasicsDTO getStockBasicsDTO(String tsCode) {
         return stockBasicsMapper.fuzzyQueryStockBasicsByTsCode(tsCode);
+    }
+
+    /**
+     * 保存股票交易日
+     * @param date 月份 YYYY-MM
+     * @param data 该月的股票交易日数据
+     * @return 成功: ture, 失败: false
+     */
+    @Override
+    public boolean saveStockMarket(String date, String data) {
+        try {
+            JSONObject.parseObject(data, new TypeReference<ArrayList<String>>(){});
+            StockMarketDTO dto = stockMarketMapper.queryStockMarket(date);
+
+            if (dto != null) {
+                return true;
+            }
+            return stockMarketMapper.saveStockMarket(date, data);
+        } catch (Exception e) {
+            log.warn("保存股票交易信息出错: {}", e.getMessage());
+            log.warn("{}", date);
+            return false;
+        }
     }
 
     // 判断是否退市，第三方接口没有，只能爬虫爬取。

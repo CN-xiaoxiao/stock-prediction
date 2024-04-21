@@ -11,6 +11,10 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class QuartzConfiguration {
+    /**
+     * 获取股票基础信息
+     * @return
+     */
     @Bean("stockBasicsJobDetail")
     public JobDetail stockBasicsJobDetailBean() {
         return JobBuilder.newJob(StockBasicsJobBean.class)
@@ -19,6 +23,10 @@ public class QuartzConfiguration {
                 .build();
     }
 
+    /**
+     * 获取交易日
+     * @return
+     */
     @Bean("stockMarketJobDetail")
     public JobDetail stockMarketJobDetailBean() {
         return JobBuilder.newJob(StockMarketJobBean.class)
@@ -27,6 +35,10 @@ public class QuartzConfiguration {
                 .build();
     }
 
+    /**
+     * 获取股票真实交易信息
+     * @return
+     */
     @Bean("stockRealJobDetail")
     public JobDetail stockRealJobDetailBean() {
         return JobBuilder.newJob(StockRealJobBean.class)
@@ -35,6 +47,10 @@ public class QuartzConfiguration {
                 .build();
     }
 
+    /**
+     * 获取股票交易热门榜单
+     * @return
+     */
     @Bean("hotStockJobDetail")
     public JobDetail hotStockJobDetailBean() {
         return JobBuilder.newJob(HotStockJobBean.class)
@@ -56,8 +72,8 @@ public class QuartzConfiguration {
 
     @Bean
     public Trigger stockMarketCronTriggerFactoryBean(@Qualifier("stockMarketJobDetail") JobDetail detail) {
-        // 每月1号执行一次 ‘0 0 0 1 * ? *’
-        CronScheduleBuilder cron = CronScheduleBuilder.cronSchedule("*/10 * * * * ?");
+        // 每月1号，15号凌晨0点5分，执行一次 ‘0 5 0 1,15 * ? *’
+        CronScheduleBuilder cron = CronScheduleBuilder.cronSchedule("0 5 0 1,15 * ? *");
         return TriggerBuilder.newTrigger()
                 .forJob(detail)
                 .withIdentity("predict-stock-market-trigger")

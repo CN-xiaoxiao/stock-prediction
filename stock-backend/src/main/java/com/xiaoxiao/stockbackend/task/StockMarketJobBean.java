@@ -1,5 +1,7 @@
 package com.xiaoxiao.stockbackend.task;
 
+import com.alibaba.fastjson2.JSONObject;
+import com.xiaoxiao.stockbackend.service.StockService;
 import com.xiaoxiao.stockbackend.utils.net.SpiderUtils;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -20,18 +22,24 @@ public class StockMarketJobBean extends QuartzJobBean {
     @Resource
     SpiderUtils spiderUtils;
 
+    @Resource
+    StockService stockService;
+
     @Override
     protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
         log.info("正在更新股票交易日...");
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM");
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
-//        calendar.set(calendar.get(Calendar.YEAR), Calendar.JANUARY,1);
-        String format = sdf.format(calendar.getTime());
 
+        String format = sdf.format(calendar.getTime());
+        log.info("获取 {} 的交易日", format);
         try {
             List<String> tradingDay = spiderUtils.getTradingDay(format);
-            System.out.println(tradingDay);
+            if (tradingDay != null && !tradingDay.isEmpty()) {
+                String jsonString = JSONObject.toJSONString(tradingDay);
+                stockService.saveStockMarket(format, jsonString);
+            }
         } catch (IOException | InterruptedException e) {
             log.warn("获取股票交易日历失败: {}", e.getMessage());
         }

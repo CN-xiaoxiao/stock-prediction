@@ -31,6 +31,13 @@ spring:
       database: 9
 #      username: root
 #      password: root
+  influx:
+    url: http://localhost:8086
+    user: admin
+    password: 123456789
+    bucket: prediction
+    org: xiaoxiao
+
   web:
     verify:
       mail-limit: 60

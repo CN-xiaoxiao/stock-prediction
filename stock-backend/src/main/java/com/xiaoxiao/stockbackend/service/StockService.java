@@ -2,7 +2,6 @@ package com.xiaoxiao.stockbackend.service;
 
 import com.github.pagehelper.PageInfo;
 import com.xiaoxiao.stockbackend.entity.dto.StockBasicsDTO;
-import com.xiaoxiao.stockbackend.entity.dto.StockRealDTO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockRealVO;
 
 import java.util.Date;
@@ -14,4 +13,5 @@ public interface StockService {
     List<StockBasicsDTO> selectAllBasicsStockData(int pageNum, int pageSize);
     String saveStockBasics();
     StockBasicsDTO getStockBasicsDTO(String tsCode);
+    boolean saveStockMarket(String date, String data);
 }

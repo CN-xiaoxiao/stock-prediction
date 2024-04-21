@@ -5,7 +5,9 @@ import com.alibaba.fastjson2.JSONObject;
 import com.xiaoxiao.stockbackend.entity.vo.request.StockApiVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.HotStockVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockApiResponse;
+import com.xiaoxiao.stockbackend.entity.vo.response.StockHistoryVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockRealVO;
+import com.xiaoxiao.stockbackend.utils.InfluxDBUtils;
 import com.xiaoxiao.stockbackend.utils.ObjectUtils;
 import com.xiaoxiao.stockbackend.utils.net.SpiderUtils;
 import jakarta.annotation.Resource;
@@ -27,8 +29,34 @@ class StockBackendApplicationTests {
     @Resource
     StringRedisTemplate stringRedisTemplate;
 
+    @Resource
+    InfluxDBUtils influxDBUtils;
+
     @Test
     void contextLoads() {
+    }
+
+    @Test
+    void testInfluxDbWrite() {
+        StockRealVO stockRealVO =
+                new StockRealVO("000001.SZ", "20240418",
+                        10.58,
+                        11.03,
+                        10.56,
+                        10.8,
+                        10.62,
+                        0.18,
+                        1.6949,
+                        3165914.26,
+                        3427338.982);
+        System.out.println(stockRealVO);
+        influxDBUtils.writeRealData(stockRealVO);
+    }
+
+    @Test
+    void testInfluxDbRead() {
+        StockHistoryVO stockHistoryVO = influxDBUtils.readRealData(93707909304815616L, "-4d", null);
+        System.out.println("stockHistoryVO = " + stockHistoryVO);
     }
 
     @Test
