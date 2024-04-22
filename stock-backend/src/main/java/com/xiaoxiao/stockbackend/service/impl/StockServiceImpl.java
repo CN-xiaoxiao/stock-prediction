@@ -167,6 +167,11 @@ public class StockServiceImpl implements StockService {
         }
     }
 
+    /**
+     * 获取股票交易日历
+     * @param date 年月份 yyyy-MM
+     * @return 休市日历
+     */
     @Override
     public StockMarketDTO getStockMarket(String date) {
         return stockMarketMapper.queryStockMarket(date);

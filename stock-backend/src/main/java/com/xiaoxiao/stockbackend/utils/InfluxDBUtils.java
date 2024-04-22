@@ -108,7 +108,7 @@ public class InfluxDBUtils {
 
     /**
      * 写入股票的每日交易数据（StockRealDTO）
-     * @param stockRealVO
+     * @param stockRealVO stockRealVO
      */
     public void writeRealData(StockRealVO stockRealVO) {
         StockRealDTO stockRealDTO = new StockRealDTO();

@@ -11,4 +11,5 @@ public interface StockDailyService {
     List<StockRealDTO> getStockDailyHistory(String tsCode, LocalDate date);
     List<StockRealDTO> getStockDailyHistory(String tsCode, LocalDate startDate, LocalDate endDate);
     List<StockRealVO> getDailyStockData(String tsCode, Date startDate);
+    void updateStockDailyHistory(String tsCode);
 }

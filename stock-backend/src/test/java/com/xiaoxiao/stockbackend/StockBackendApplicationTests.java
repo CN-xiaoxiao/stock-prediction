@@ -40,6 +40,7 @@ class StockBackendApplicationTests {
     @Resource
     StockDailyService stockDailyService;
 
+
     @Test
     void contextLoads() {
     }
@@ -186,5 +187,18 @@ class StockBackendApplicationTests {
         LocalDate date = LocalDate.ofInstant(instant, ZoneId.of("Asia/Shanghai"));
         System.out.println("date = " + date);
         stockDailyHistory.forEach(System.out::println);
+    }
+
+    @Test
+    public void testUpdateStockDailyHistory() {
+        stockDailyService.updateStockDailyHistory("000001.SZ");
+    }
+
+    @Test
+    public void testGetMonth() {
+        LocalDate date = LocalDate.now();
+        System.out.println("date = " + date);
+        System.out.println("date.getMonth() = " + date.getMonth());
+        System.out.println("date.getYear() = " + date.getYear());
     }
 }
