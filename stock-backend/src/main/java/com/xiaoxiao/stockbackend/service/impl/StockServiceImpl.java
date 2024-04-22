@@ -50,31 +50,6 @@ public class StockServiceImpl implements StockService {
 
 
     /**
-     * 得到每天的股票交易数据
-     * @param tsCode
-     * @param startDate
-     * @return
-     */
-    @Override
-    public StockRealVO getDailyStockData(String tsCode, Date startDate) {
-        DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
-        String date = dateFormat.format(startDate);
-
-        // TODO 股票会出现休市
-        Map<String, String> params = Map.of("ts_code", tsCode, "start_date", date, "end_date", date);
-
-        StockApiVO vo = createApiVO("daily", netUtils.getToken(), params, null);
-        StockApiResponse response;
-
-        try {
-            response = netUtils.doPost(vo);
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        return Objects.requireNonNull(response.getItems(StockRealVO.class)).get(0);
-    }
-
-    /**
      * 分页查询股票基础数据
      * @param pageNum 页号
      * @param pageSize 查询的个数
@@ -105,10 +80,10 @@ public class StockServiceImpl implements StockService {
      */
     @Override
     public String saveStockBasics() {
-        int count = stockBasicsMapper.countStockBasics();
+        int count = this.queryStockBasicsCount();
         if (count <= 0) {
             Map<String, String> params = Map.of("list_status","L");
-            StockApiVO vo = createApiVO("stock_basic", netUtils.getToken(), params, null);
+            StockApiVO vo = netUtils.createApiVO("stock_basic", netUtils.getToken(), params, null);
 
             try(SqlSession sqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH, false)) {
                 int times = 3;
@@ -164,6 +139,11 @@ public class StockServiceImpl implements StockService {
         return stockBasicsMapper.fuzzyQueryStockBasicsByTsCode(tsCode);
     }
 
+    @Override
+    public int queryStockBasicsCount() {
+        return stockBasicsMapper.countStockBasics();
+    }
+
     /**
      * 保存股票交易日
      * @param date 月份 YYYY-MM
@@ -187,6 +167,31 @@ public class StockServiceImpl implements StockService {
         }
     }
 
+    @Override
+    public StockMarketDTO getStockMarket(String date) {
+        return stockMarketMapper.queryStockMarket(date);
+    }
+
+    /**
+     * 获取股票代码的 tsCode
+     * @return tsCode字符串集合
+     */
+    @Override
+    public List<String> getStockTsCode(int pageNum, int pageSize) {
+        PageHelper.startPage(pageNum, pageSize);
+        return stockBasicsMapper.queryTsCode();
+    }
+
+    /**
+     * 根据 tsCode 查询股票的sid
+     * @param tsCode
+     * @return
+     */
+    @Override
+    public long querySidByTsCode(String tsCode) {
+        return stockBasicsMapper.querySidByTsCode(tsCode);
+    }
+
     // 判断是否退市，第三方接口没有，只能爬虫爬取。
     private List<String> isDelisting() {
         return null;
@@ -200,7 +205,7 @@ public class StockServiceImpl implements StockService {
         DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
         String date = dateFormat.format(new Date());
         Map<String, String> params = Map.of("start_date",date, "end_date", date);
-        StockApiVO apiVO = createApiVO("new_share", netUtils.getToken(), params, null);
+        StockApiVO apiVO = netUtils.createApiVO("new_share", netUtils.getToken(), params, null);
 
         try {
             StockApiResponse stockApiResponse = netUtils.doPost(apiVO);
@@ -233,17 +238,6 @@ public class StockServiceImpl implements StockService {
         return null;
     }
 
-    /**
-     * 快速创建第三方api接口的请求类
-     * @param apiName api接口名称
-     * @param token token
-     * @param params 请求参数
-     * @param fields 请求字段
-     * @return 第三方api请求接口类
-     */
-    private StockApiVO createApiVO(String apiName, String token, Map<String, String> params, List<String> fields) {
-        return new StockApiVO(apiName, token, params, fields);
-    }
 
     /**
      * 做退市判断和新上市股票的判断与逻辑

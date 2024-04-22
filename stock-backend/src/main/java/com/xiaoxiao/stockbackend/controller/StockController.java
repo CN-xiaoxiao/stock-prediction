@@ -33,13 +33,13 @@ public class StockController {
     @Resource
     SnowflakeIdGenerator idGenerator;
 
-    @GetMapping("/daily")
-    public RestBean<StockRealVO> getDailyStockData(@RequestParam @Valid String tsCode,
-                                                   @RequestParam @Valid
-                                                   @DateTimeFormat(pattern = "yyyyMMdd") Date startDate) {
-        StockRealVO dailyStockData = stockService.getDailyStockData(tsCode, startDate);
-        return RestBean.success(dailyStockData);
-    }
+//    @GetMapping("/daily")
+//    public RestBean<StockRealVO> getDailyStockData(@RequestParam @Valid String tsCode,
+//                                                   @RequestParam @Valid
+//                                                   @DateTimeFormat(pattern = "yyyyMMdd") Date startDate) {
+//        StockRealVO dailyStockData = stockService.getDailyStockData(tsCode, startDate);
+//        return RestBean.success(dailyStockData);
+//    }
 
     @GetMapping("/all-basics2")
     public RestBean<PageInfo<StockBasicsDTO>> getAllStockBasicsDataS(int pageNum, int pageSize) {

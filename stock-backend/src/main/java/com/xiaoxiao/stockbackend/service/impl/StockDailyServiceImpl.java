@@ -1,20 +1,30 @@
 package com.xiaoxiao.stockbackend.service.impl;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.xiaoxiao.stockbackend.entity.dto.StockMarketDTO;
 import com.xiaoxiao.stockbackend.entity.dto.StockRealDTO;
+import com.xiaoxiao.stockbackend.entity.vo.request.StockApiVO;
+import com.xiaoxiao.stockbackend.entity.vo.response.StockApiResponse;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockHistoryVO;
+import com.xiaoxiao.stockbackend.entity.vo.response.StockRealVO;
 import com.xiaoxiao.stockbackend.mapper.StockBasicsMapper;
+import com.xiaoxiao.stockbackend.mapper.StockMarketMapper;
 import com.xiaoxiao.stockbackend.service.StockDailyService;
 import com.xiaoxiao.stockbackend.utils.InfluxDBUtils;
+import com.xiaoxiao.stockbackend.utils.net.NetUtils;
 import jakarta.annotation.Resource;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * @ClassName StockDailyServiceImpl
@@ -26,10 +36,15 @@ import java.util.List;
 @Service
 public class StockDailyServiceImpl implements StockDailyService {
 
+    private static final Logger log = LoggerFactory.getLogger(StockDailyServiceImpl.class);
     @Resource
     StockBasicsMapper stockBasicsMapper;
     @Resource
+    StockMarketMapper stockMarketMapper;
+    @Resource
     InfluxDBUtils influxDBUtils;
+    @Resource
+    NetUtils netUtils;
 
     /**
      * 获取股票编号为 tsCode的股票从 date 到 now() 时间的所有交易记录
@@ -69,6 +84,31 @@ public class StockDailyServiceImpl implements StockDailyService {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         StockHistoryVO stockHistoryVO = influxDBUtils.readRealData(sid, startDate.format(dtf), endDate.format(dtf));
         return getStockRealDTOS(result, sid, stockHistoryVO);
+    }
+
+    /**
+     * 从第三方api得到每天的股票交易数据
+     * @param tsCode 股票ts代码
+     * @param startDate 开始时间
+     * @return
+     */
+    @Override
+    public List<StockRealVO> getDailyStockData(String tsCode, Date startDate) {
+        DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+        String date = dateFormat.format(startDate);
+
+        Map<String, String> params = Map.of("ts_code", tsCode, "start_date", date, "end_date", date);
+        StockApiVO apiVO = netUtils.createApiVO("daily", netUtils.getToken(), params, null);
+
+        StockApiResponse response;
+        try {
+            response = netUtils.doPost(apiVO);
+        } catch (IOException | InterruptedException e) {
+            log.warn("获取每日股票交易信息出错");
+            return null;
+        }
+
+        return Objects.requireNonNull(response.getItems(StockRealVO.class));
     }
 
     @Nullable

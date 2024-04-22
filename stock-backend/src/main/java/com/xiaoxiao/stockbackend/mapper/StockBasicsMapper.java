@@ -46,4 +46,7 @@ public interface StockBasicsMapper {
 
     @Select("select sid from stock_basics where ts_code = #{tsCode}")
     long querySidByTsCode(String tsCode);
+
+    @Select("select ts_code from stock_basics")
+    List<String> queryTsCode();
 }

@@ -83,8 +83,8 @@ public class QuartzConfiguration {
 
     @Bean
     public Trigger stockRealCronTriggerFactoryBean(@Qualifier("stockRealJobDetail") JobDetail detail) {
-        // 每天晚上20点自动执行 ‘0 0 20 * * ? *’
-        CronScheduleBuilder cron = CronScheduleBuilder.cronSchedule("*/10 * * * * ?");
+        // 每天下午16点10分自动执行 ‘0 10 16 * * ? *’
+        CronScheduleBuilder cron = CronScheduleBuilder.cronSchedule("30 * * * * ? *");
         return TriggerBuilder.newTrigger()
                 .forJob(detail)
                 .withIdentity("predict-stock-real-trigger")

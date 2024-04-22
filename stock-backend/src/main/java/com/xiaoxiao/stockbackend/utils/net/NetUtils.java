@@ -17,6 +17,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 网络请求工具，用于调用第三方API接口
@@ -67,5 +69,17 @@ public class NetUtils {
         String[] split = tushareToken.split(",");
         tokens.addAll(Arrays.asList(split));
         token = tokens.get(0);
+    }
+
+    /**
+     * 快速创建第三方api接口的请求类
+     * @param apiName api接口名称
+     * @param token token
+     * @param params 请求参数
+     * @param fields 请求字段
+     * @return 第三方api请求接口类
+     */
+    public StockApiVO createApiVO(String apiName, String token, Map<String, String> params, List<String> fields) {
+        return new StockApiVO(apiName, token, params, fields);
     }
 }
