@@ -2,11 +2,13 @@ package com.xiaoxiao.stockbackend;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.xiaoxiao.stockbackend.entity.dto.StockRealDTO;
 import com.xiaoxiao.stockbackend.entity.vo.request.StockApiVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.HotStockVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockApiResponse;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockHistoryVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockRealVO;
+import com.xiaoxiao.stockbackend.service.StockDailyService;
 import com.xiaoxiao.stockbackend.utils.InfluxDBUtils;
 import com.xiaoxiao.stockbackend.utils.ObjectUtils;
 import com.xiaoxiao.stockbackend.utils.net.SpiderUtils;
@@ -22,6 +24,10 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 
 @SpringBootTest
@@ -31,6 +37,8 @@ class StockBackendApplicationTests {
 
     @Resource
     InfluxDBUtils influxDBUtils;
+    @Resource
+    StockDailyService stockDailyService;
 
     @Test
     void contextLoads() {
@@ -39,23 +47,24 @@ class StockBackendApplicationTests {
     @Test
     void testInfluxDbWrite() {
         StockRealVO stockRealVO =
-                new StockRealVO("000001.SZ", "20240418",
-                        10.58,
-                        11.03,
-                        10.56,
-                        10.8,
+                new StockRealVO("000001.SZ", "20240417",
+                        10.26,
+                        10.63,
+                        10.21,
                         10.62,
-                        0.18,
-                        1.6949,
-                        3165914.26,
-                        3427338.982);
+                        10.28,
+                        0.34,
+                        3.3074,
+                        2232640.57,
+                        2337576.587);
         System.out.println(stockRealVO);
         influxDBUtils.writeRealData(stockRealVO);
     }
 
     @Test
     void testInfluxDbRead() {
-        StockHistoryVO stockHistoryVO = influxDBUtils.readRealData(93707909304815616L, "-4d", null);
+        StockHistoryVO stockHistoryVO = influxDBUtils.readRealData(93707909304815616L, "2024-04-16", "2024-04-19");
+        System.out.println("size: " + stockHistoryVO.getList().size());
         System.out.println("stockHistoryVO = " + stockHistoryVO);
     }
 
@@ -151,5 +160,31 @@ class StockBackendApplicationTests {
         calendar.set(calendar.get(Calendar.YEAR), Calendar.JANUARY,1);
         String format = sdf.format(calendar.getTime());
         System.out.println(format);
+    }
+
+    @Test
+    public void testGetDifferDay() {
+        LocalDate localDate = LocalDate.parse("2024-04-20");
+        LocalDate date2 = LocalDate.parse("2024-04-22");
+        System.out.println("localDate = " + localDate);
+        System.out.println("date2 = " + date2);
+        System.out.println("date2 - date1 = " + calculateDaysBetween(localDate, date2));
+
+    }
+
+    private static long calculateDaysBetween(LocalDate date1, LocalDate date2) {
+        Duration between = Duration.between(date1.atStartOfDay(), date2.atStartOfDay());
+        return between.toDays();
+    }
+
+    @Test
+    public void testGetStockDailyHistory() {
+        List<StockRealDTO> stockDailyHistory = stockDailyService
+                .getStockDailyHistory("000001.SZ", LocalDate.parse("2024-04-19"));
+        Instant instant = stockDailyHistory.get(0).getTradeDate();
+
+        LocalDate date = LocalDate.ofInstant(instant, ZoneId.of("Asia/Shanghai"));
+        System.out.println("date = " + date);
+        stockDailyHistory.forEach(System.out::println);
     }
 }

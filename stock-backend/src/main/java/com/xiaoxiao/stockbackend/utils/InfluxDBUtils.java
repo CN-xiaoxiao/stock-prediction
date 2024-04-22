@@ -3,7 +3,6 @@ package com.xiaoxiao.stockbackend.utils;
 import com.alibaba.fastjson2.JSONObject;
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;
-import com.influxdb.client.InfluxDBClientOptions;
 import com.influxdb.client.WriteApiBlocking;
 import com.influxdb.client.domain.WritePrecision;
 import com.influxdb.query.FluxRecord;
@@ -24,7 +23,6 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
@@ -56,16 +54,33 @@ public class InfluxDBUtils {
         influxDBClient = InfluxDBClientFactory.create(influxUrl, influxUser, influxPassword.toCharArray());
     }
 
+    /**
+     * 读取股票交易信息
+     * @param sid 股票的sid
+     * @param startTime 开始时间 相对时间(-1d: 过去一天)或绝对时间（格式: yyyy-MM-dd）
+     * @param endTime 结束时间
+     * @return StockHistoryVO 包装类，里面存的是 StockRealDTO 的 JSONObject
+     */
     public StockHistoryVO readRealData(long sid, String startTime, String endTime) {
         StockHistoryVO stockHistoryVO = new StockHistoryVO();
-
-        String query = """
+        String query;
+        if (endTime == null || endTime.isEmpty()) {
+            endTime = "now()";
+            query = """
                 from(bucket: "%s")
                     |> range(start: %s, stop: %s)
                     |> filter(fn: (r) => r["_measurement"] == "real")
                     |> filter(fn: (r) => r["sid"] == "%s")
                 """;
-        if (endTime == null) endTime = "now()";
+        } else {
+            query = """
+                from(bucket: "%s")
+                    |> range(start: time(v: "%s"), stop: time(v: "%s"))
+                    |> filter(fn: (r) => r["_measurement"] == "real")
+                    |> filter(fn: (r) => r["sid"] == "%s")
+                """;
+        }
+
         String format = String.format(query, influxBucket, startTime, endTime, sid);
 
         List<FluxTable> tables = influxDBClient.getQueryApi().query(format, influxOrg);
@@ -91,6 +106,10 @@ public class InfluxDBUtils {
         return stockHistoryVO;
     }
 
+    /**
+     * 写入股票的每日交易数据（StockRealDTO）
+     * @param stockRealVO
+     */
     public void writeRealData(StockRealVO stockRealVO) {
         StockRealDTO stockRealDTO = new StockRealDTO();
         BeanUtils.copyProperties(stockRealVO, stockRealDTO);
