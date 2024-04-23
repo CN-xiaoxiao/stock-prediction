@@ -10,9 +10,9 @@
     </div>
 
     <div class="welcome-title">
-      <div style="font-size: 30px; font-weight: bold">欢迎来到我们的学习平台</div>
-      <div style="margin-top: 10px">在这里你可以学习到Java等编程语言</div>
-      <div style="margin-top: 5px">这也是一个同性交友平台</div>
+      <div style="font-size: 30px; font-weight: bold">欢迎来到股票预测系统</div>
+      <div style="margin-top: 10px">在这里你可以对自己感兴趣的股票进行简单的预测分析</div>
+<!--      <div style="margin-top: 5px"></div>-->
     </div>
 
     <div class="right-card">

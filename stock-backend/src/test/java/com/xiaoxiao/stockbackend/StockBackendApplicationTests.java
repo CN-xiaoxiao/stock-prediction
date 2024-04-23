@@ -1,16 +1,12 @@
 package com.xiaoxiao.stockbackend;
 
-import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import com.xiaoxiao.stockbackend.entity.dto.StockRealDTO;
 import com.xiaoxiao.stockbackend.entity.vo.request.StockApiVO;
-import com.xiaoxiao.stockbackend.entity.vo.response.HotStockVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockApiResponse;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockHistoryVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockRealVO;
 import com.xiaoxiao.stockbackend.service.StockDailyService;
 import com.xiaoxiao.stockbackend.utils.InfluxDBUtils;
-import com.xiaoxiao.stockbackend.utils.ObjectUtils;
 import com.xiaoxiao.stockbackend.utils.net.SpiderUtils;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
@@ -18,16 +14,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.*;
 
 @SpringBootTest
@@ -180,12 +173,12 @@ class StockBackendApplicationTests {
 
     @Test
     public void testGetStockDailyHistory() {
-        List<StockRealDTO> stockDailyHistory = stockDailyService
-                .getStockDailyHistory("000001.SZ", LocalDate.parse("2024-04-19"));
-        Instant instant = stockDailyHistory.get(0).getTradeDate();
+        List<StockRealVO> stockDailyHistory = stockDailyService
+                .getStockDailyHistory("000001.SZ", LocalDate.parse("2024-04-19"), LocalDate.parse("2024-04-23"));
+//        Instant instant = stockDailyHistory.get(0).getTradeDate();
 
-        LocalDate date = LocalDate.ofInstant(instant, ZoneId.of("Asia/Shanghai"));
-        System.out.println("date = " + date);
+//        LocalDate date = LocalDate.ofInstant(instant, ZoneId.of("Asia/Shanghai"));
+//        System.out.println("date = " + date);
         stockDailyHistory.forEach(System.out::println);
     }
 

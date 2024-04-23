@@ -2,12 +2,14 @@ package com.xiaoxiao.stockbackend.entity.vo.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 请求真实股票数据的实体类
  */
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class StockRealVO {
     private String tsCode;
     private String tradeDate;

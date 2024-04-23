@@ -15,8 +15,7 @@ import com.xiaoxiao.stockbackend.utils.net.NetUtils;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -31,7 +30,6 @@ import java.util.*;
  * @ClassName StockDailyServiceImpl
  * @Description 股票交易信息服务类
  * @Author xiaoxiao
- * @Date 2024/4/21 下午8:08
  * @Version 1.0
  */
 @Slf4j
@@ -51,11 +49,11 @@ public class StockDailyServiceImpl implements StockDailyService {
      * 获取股票编号为 tsCode的股票从 date 到 now() 时间的所有交易记录
      * @param tsCode 股票ts编码
      * @param date 时间日期
-     * @return date到now()的所有股票交易记录
+     * @return date到now()的所有股票交易记录 List<StockRealVO>
      */
     @Override
-    public List<StockRealDTO> getStockDailyHistory(String tsCode, LocalDate date) {
-        List<StockRealDTO> result = new ArrayList<>();
+    public List<StockRealVO> getStockDailyHistory(String tsCode, LocalDate date) {
+        List<StockRealVO> result = new ArrayList<>();
 
         long sid = stockBasicsMapper.querySidByTsCode(tsCode);
         if (sid <= 0) return null;
@@ -64,7 +62,7 @@ public class StockDailyServiceImpl implements StockDailyService {
         String time = diffDay -1 + "d";
 
         StockHistoryVO stockHistoryVO = influxDBUtils.readRealData(sid, time, null);
-        return getStockRealDTOS(result, sid, stockHistoryVO);
+        return getStockRealVOS(result, stockHistoryVO);
     }
 
     /**
@@ -75,8 +73,8 @@ public class StockDailyServiceImpl implements StockDailyService {
      * @return 从 startDate 到 endDate 之间的股票交易数据
      */
     @Override
-    public List<StockRealDTO> getStockDailyHistory(String tsCode, LocalDate startDate, LocalDate endDate) {
-        List<StockRealDTO> result = new ArrayList<>();
+    public List<StockRealVO> getStockDailyHistory(String tsCode, LocalDate startDate, LocalDate endDate) {
+        List<StockRealVO> result = new ArrayList<>();
 
         long sid = stockBasicsMapper.querySidByTsCode(tsCode);
         if (sid <= 0) return null;
@@ -84,7 +82,7 @@ public class StockDailyServiceImpl implements StockDailyService {
         startDate = startDate.plusDays(-1);
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         StockHistoryVO stockHistoryVO = influxDBUtils.readRealData(sid, startDate.format(dtf), endDate.format(dtf));
-        return getStockRealDTOS(result, sid, stockHistoryVO);
+        return getStockRealVOS(result, stockHistoryVO);
     }
 
     /**
@@ -193,14 +191,33 @@ public class StockDailyServiceImpl implements StockDailyService {
         return true;
     }
 
+    /**
+     * 将 List<StockRealVO> ---> List<StockRealDTO>
+     * @param sid 股票存储在数据库的 sid
+     * @param list 带转换的集合
+     * @return 转换号的集合
+     */
     @Nullable
-    private List<StockRealDTO> getStockRealDTOS(List<StockRealDTO> result, long sid, StockHistoryVO stockHistoryVO) {
-        List<JSONObject> list = stockHistoryVO.getList();
-        if (list == null || list.isEmpty()) return null;
-        for (JSONObject jsonObject : list) {
-            StockRealDTO stockRealDTO = JSONObject.parseObject(jsonObject.toJSONString(), StockRealDTO.class);
+    public List<StockRealDTO> getStockRealDTOS(long sid, List<StockRealVO> list) {
+        List<StockRealDTO> result = new ArrayList<>();
+        if (list == null || list.isEmpty() || sid <= 0) return null;
+        for (StockRealVO vo : list) {
+            StockRealDTO stockRealDTO = new StockRealDTO();
+            BeanUtils.copyProperties(vo, stockRealDTO);
             stockRealDTO.setSid(sid);
             result.add(stockRealDTO);
+        }
+        return result;
+    }
+
+    @Nullable
+    private List<StockRealVO> getStockRealVOS(List<StockRealVO> result, StockHistoryVO stockHistoryVO) {
+        List<JSONObject> list = stockHistoryVO.getList();
+        if (list == null || list.isEmpty()) return null;
+
+        for (JSONObject jsonObject : list) {
+            StockRealVO stockRealVO = JSONObject.parseObject(jsonObject.toJSONString(), StockRealVO.class);
+            result.add(stockRealVO);
         }
         return result;
     }

@@ -44,7 +44,6 @@ public class HotStockJobBean extends QuartzJobBean {
                     String tsCode = hotStockVO.getTsCode();
                     StockBasicsDTO stockBasicsDTO = stockService.getStockBasicsDTO(tsCode);
                     if (stockBasicsDTO != null) {
-                        System.out.println(stockBasicsDTO);
                         String jsonString = JSONObject.toJSONString(stockBasicsDTO);
                         stringRedisTemplate.opsForValue().set(Const.STOCK_HOT_LIST + (i+1) + ":", jsonString);
                     }

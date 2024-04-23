@@ -1,25 +1,18 @@
 package com.xiaoxiao.stockbackend.controller;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.github.pagehelper.PageInfo;
 import com.xiaoxiao.stockbackend.entity.RestBean;
 import com.xiaoxiao.stockbackend.entity.dto.StockBasicsDTO;
+import com.xiaoxiao.stockbackend.entity.vo.request.StockDailyVO;
+import com.xiaoxiao.stockbackend.entity.vo.response.StockBasicsVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockRealVO;
-import com.xiaoxiao.stockbackend.mapper.StockBasicsMapper;
+import com.xiaoxiao.stockbackend.service.StockDailyService;
 import com.xiaoxiao.stockbackend.service.StockService;
-import com.xiaoxiao.stockbackend.utils.SnowflakeIdGenerator;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -29,60 +22,36 @@ public class StockController {
     @Resource
     StockService stockService;
     @Resource
-    StockBasicsMapper stockBasicsMapper;
-    @Resource
-    SnowflakeIdGenerator idGenerator;
+    StockDailyService stockDailyService;
 
-//    @GetMapping("/daily")
-//    public RestBean<StockRealVO> getDailyStockData(@RequestParam @Valid String tsCode,
-//                                                   @RequestParam @Valid
-//                                                   @DateTimeFormat(pattern = "yyyyMMdd") Date startDate) {
-//        StockRealVO dailyStockData = stockService.getDailyStockData(tsCode, startDate);
-//        return RestBean.success(dailyStockData);
-//    }
-
+    // 获得股票基础信息
     @GetMapping("/all-basics2")
-    public RestBean<PageInfo<StockBasicsDTO>> getAllStockBasicsDataS(int pageNum, int pageSize) {
+    public RestBean<PageInfo<StockBasicsDTO>> getAllStockBasicsDataS(@RequestParam @Valid int pageNum,
+                                                                     @RequestParam @Valid int pageSize) {
         return RestBean.success(stockService.selectAllBasicsStockDataS(pageNum, pageSize));
     }
 
+    // 获得股票基础信息
     @GetMapping("/all-basics")
-    public RestBean<List<StockBasicsDTO>> getAllStockBasicsData(int pageNum, int pageSize) {
+    public RestBean<List<StockBasicsDTO>> getAllStockBasicsData(@RequestParam @Valid int pageNum,
+                                                                @RequestParam @Valid int pageSize) {
         return RestBean.success(stockService.selectAllBasicsStockData(pageNum, pageSize));
     }
 
-
-    @GetMapping("/save-basics")
-    public RestBean<String> saveStockBasicsData() {
-        return RestBean.success(stockService.saveStockBasics());
+    // 获得热门股票列表
+    @GetMapping("/hot")
+    public RestBean<List<StockBasicsVO>> getHotStockList() {
+        return RestBean.success(stockService.getHotStockData());
     }
 
-    @GetMapping("/test")
-    public RestBean<Void> testInsert() {
-        StockBasicsDTO dto = new StockBasicsDTO()
-                .setSid(idGenerator.nextId())
-                .setTsCode("123").setSymbol("456")
-                        .setName("股票").setArea("北京").setIndustry("123").setCnspell("456")
-                        .setMarket("上海债务所").setListDate("20241016").setActName("马云").setActEntType("电子");
-        stockBasicsMapper.insertStockBasics(dto);
-        List<StockBasicsDTO> list = new ArrayList<>();
-        list.add(dto);
-        list.add(dto);
-        String jsonString = JSONObject.toJSONString(list);
-        saveJson(jsonString);
-        return RestBean.success();
-    }
-    private void saveJson(String json) {
-        try (FileWriter fileWriter = new FileWriter("data.json")) {
-            fileWriter.write(json);
-        } catch (IOException e) {
-
-        }
+    // 获取某个股票的日线数据（4个月）
+    @PostMapping("/daily")
+    public RestBean<List<StockRealVO>> getStockDailyData(@RequestBody @Valid StockDailyVO vo) {
+        LocalDate date = vo.getDate();
+        LocalDate date1 = date.plusMonths(-4);
+        List<StockRealVO> stockDailyHistory = stockDailyService.getStockDailyHistory(vo.getTsCode(), date1);
+        return stockDailyHistory != null && !stockDailyHistory.isEmpty() ?
+                RestBean.success(stockDailyHistory):RestBean.failure(400, "输入参数有误");
     }
 
-    @GetMapping("/test2")
-    public RestBean<StockBasicsDTO> testSelect() {
-        StockBasicsDTO dto = stockBasicsMapper.selectStockBasicsByTsCode("000001.SZ");
-        return RestBean.success(dto);
-    }
 }

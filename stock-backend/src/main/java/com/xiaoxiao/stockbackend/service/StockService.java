@@ -3,9 +3,8 @@ package com.xiaoxiao.stockbackend.service;
 import com.github.pagehelper.PageInfo;
 import com.xiaoxiao.stockbackend.entity.dto.StockBasicsDTO;
 import com.xiaoxiao.stockbackend.entity.dto.StockMarketDTO;
-import com.xiaoxiao.stockbackend.entity.vo.response.StockRealVO;
+import com.xiaoxiao.stockbackend.entity.vo.response.StockBasicsVO;
 
-import java.util.Date;
 import java.util.List;
 
 public interface StockService {
@@ -18,4 +17,5 @@ public interface StockService {
     StockMarketDTO getStockMarket(String date);
     List<String> getStockTsCode(int pageNum, int pageSize);
     long querySidByTsCode(String tsCode);
+    List<StockBasicsVO> getHotStockData();
 }

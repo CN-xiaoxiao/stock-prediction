@@ -6,6 +6,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.xiaoxiao.stockbackend.entity.dto.StockBasicsDTO;
 import com.xiaoxiao.stockbackend.entity.dto.StockMarketDTO;
+import com.xiaoxiao.stockbackend.entity.dto.StockRealDTO;
 import com.xiaoxiao.stockbackend.entity.vo.request.StockApiVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.NewStockVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockApiResponse;
@@ -14,6 +15,7 @@ import com.xiaoxiao.stockbackend.entity.vo.response.StockRealVO;
 import com.xiaoxiao.stockbackend.mapper.StockBasicsMapper;
 import com.xiaoxiao.stockbackend.mapper.StockMarketMapper;
 import com.xiaoxiao.stockbackend.service.StockService;
+import com.xiaoxiao.stockbackend.utils.Const;
 import com.xiaoxiao.stockbackend.utils.net.NetUtils;
 import com.xiaoxiao.stockbackend.utils.SnowflakeIdGenerator;
 import jakarta.annotation.Resource;
@@ -22,6 +24,7 @@ import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -45,6 +48,8 @@ public class StockServiceImpl implements StockService {
     StockMarketMapper stockMarketMapper;
     @Resource
     SnowflakeIdGenerator idGenerator;
+    @Resource
+    StringRedisTemplate stringRedisTemplate;
     @Resource
     private SqlSessionFactory sqlSessionFactory;
 
@@ -195,6 +200,24 @@ public class StockServiceImpl implements StockService {
     @Override
     public long querySidByTsCode(String tsCode) {
         return stockBasicsMapper.querySidByTsCode(tsCode);
+    }
+
+    /**
+     * 获取热门股票榜单
+     * @return
+     */
+    @Override
+    public List<StockBasicsVO> getHotStockData() {
+        List<StockBasicsVO> list = new ArrayList<>(20);
+        for (int i = 1; i <= 20; i++) {
+            String s = stringRedisTemplate.opsForValue().get(Const.STOCK_HOT_LIST + i + ":");
+            StockBasicsDTO stockBasicsDTO = JSONObject.parseObject(s, StockBasicsDTO.class);
+            if (stockBasicsDTO == null) continue;
+            StockBasicsVO stockBasicsVO = new StockBasicsVO();
+            BeanUtils.copyProperties(stockBasicsDTO, stockBasicsVO);
+            list.add(stockBasicsVO);
+        }
+        return list;
     }
 
     // 判断是否退市，第三方接口没有，只能爬虫爬取。

@@ -93,7 +93,7 @@ public class InfluxDBUtils {
             JSONObject object = new JSONObject();
 
             Instant instant = records.get(i).getTime();
-            LocalDate localDate = LocalDate.ofInstant(instant, ZoneId.systemDefault());
+            LocalDate localDate = LocalDate.ofInstant(instant, ZoneId.of("Asia/Shanghai"));
             String time = localDate.format(dtf);
 
             object.put("tradeDate", time);
