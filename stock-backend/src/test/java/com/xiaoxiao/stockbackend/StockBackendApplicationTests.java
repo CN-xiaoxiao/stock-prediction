@@ -1,11 +1,14 @@
 package com.xiaoxiao.stockbackend;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.xiaoxiao.stockbackend.entity.dto.StockBasicsDTO;
 import com.xiaoxiao.stockbackend.entity.vo.request.StockApiVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockApiResponse;
+import com.xiaoxiao.stockbackend.entity.vo.response.StockBasicsVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockHistoryVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockRealVO;
 import com.xiaoxiao.stockbackend.service.StockDailyService;
+import com.xiaoxiao.stockbackend.service.StockService;
 import com.xiaoxiao.stockbackend.utils.InfluxDBUtils;
 import com.xiaoxiao.stockbackend.utils.net.SpiderUtils;
 import jakarta.annotation.Resource;
@@ -32,6 +35,8 @@ class StockBackendApplicationTests {
     InfluxDBUtils influxDBUtils;
     @Resource
     StockDailyService stockDailyService;
+    @Resource
+    StockService stockService;
 
 
     @Test
@@ -193,5 +198,17 @@ class StockBackendApplicationTests {
         System.out.println("date = " + date);
         System.out.println("date.getMonth() = " + date.getMonth());
         System.out.println("date.getYear() = " + date.getYear());
+    }
+
+    @Test
+    public void testGetStockBasicsDTO() {
+        List<StockBasicsDTO> stockBasicsDTO = stockService.getStockBasicsDTO("000001.SZ");
+        stockBasicsDTO.forEach(System.out::println);
+    }
+
+    @Test
+    public void testGetStockBasicsVO() {
+        List<StockBasicsVO> stockBasicsVO = stockService.getStockBasicsVO(1, 20, "0000");
+        stockBasicsVO.forEach(System.out::println);
     }
 }

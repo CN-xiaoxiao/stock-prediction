@@ -5,7 +5,6 @@ import com.xiaoxiao.stockbackend.entity.dto.StockBasicsDTO;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Mapper
@@ -40,9 +39,14 @@ public interface StockBasicsMapper {
     @ResultMap("stockBasicsMap")
     StockBasicsDTO selectStockBasicsByTsCode(String tsCode);
 
-    @Select("select * from stock_basics where ts_code like concat(#{tsCode},'%')")
+    @Select("""
+        select * from stock_basics
+        where
+                ts_code like concat('%',#{tsCode},'%')
+
+    """)
     @ResultMap("stockBasicsMap")
-    StockBasicsDTO fuzzyQueryStockBasicsByTsCode(String tsCode);
+    List<StockBasicsDTO> fuzzyQueryStockBasicsDTOByTsCode(String tsCode);
 
     @Select("select sid from stock_basics where ts_code = #{tsCode}")
     long querySidByTsCode(String tsCode);

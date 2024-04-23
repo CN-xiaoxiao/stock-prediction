@@ -54,4 +54,11 @@ public class StockController {
                 RestBean.success(stockDailyHistory):RestBean.failure(400, "输入参数有误");
     }
 
+    @GetMapping("/query")
+    public RestBean<PageInfo<StockBasicsVO>> queryStockBasics(@RequestParam @Valid int pageNum,
+                                                              @RequestParam @Valid int pageSize,
+                                                              @RequestParam String tsCode) {
+        return RestBean.success(stockService.getStockBasicsVO(pageNum, pageSize, tsCode));
+    }
+
 }

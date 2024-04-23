@@ -6,12 +6,10 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.xiaoxiao.stockbackend.entity.dto.StockBasicsDTO;
 import com.xiaoxiao.stockbackend.entity.dto.StockMarketDTO;
-import com.xiaoxiao.stockbackend.entity.dto.StockRealDTO;
 import com.xiaoxiao.stockbackend.entity.vo.request.StockApiVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.NewStockVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockApiResponse;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockBasicsVO;
-import com.xiaoxiao.stockbackend.entity.vo.response.StockRealVO;
 import com.xiaoxiao.stockbackend.mapper.StockBasicsMapper;
 import com.xiaoxiao.stockbackend.mapper.StockMarketMapper;
 import com.xiaoxiao.stockbackend.service.StockService;
@@ -79,6 +77,12 @@ public class StockServiceImpl implements StockService {
         return stockBasicsMapper.queryStockBasicsData();
     }
 
+    @Override
+    public List<StockBasicsDTO> selectAllBasicsStock(int pageNum, int pageSize, String tsCode) {
+        PageHelper.startPage(pageNum, pageSize);
+        return stockBasicsMapper.queryStockBasicsData();
+    }
+
     /**
      * 保存（更新）股票基础数据
      * @return
@@ -137,12 +141,27 @@ public class StockServiceImpl implements StockService {
     /**
      * 根据ts_code来查询股票基础信息
      * @param tsCode 股票ts代码
-     * @return StockBasicsDTO 股票基础信息实体类
+     * @return StockBasicsDTO 股票基础信息实体类集合
      */
     @Override
-    public StockBasicsDTO getStockBasicsDTO(String tsCode) {
-        return stockBasicsMapper.fuzzyQueryStockBasicsByTsCode(tsCode);
+    public List<StockBasicsDTO> getStockBasicsDTO(String tsCode) {
+        return stockBasicsMapper.fuzzyQueryStockBasicsDTOByTsCode(tsCode);
     }
+
+    @Override
+    public PageInfo<StockBasicsVO> getStockBasicsVO(int pageNum, int pageSize, String tsCode) {
+        PageHelper.startPage(pageNum, pageSize);
+        List<StockBasicsDTO> list = stockBasicsMapper.fuzzyQueryStockBasicsDTOByTsCode(tsCode);
+        if (list == null || list.isEmpty()) return null;
+        List<StockBasicsVO> vos = new ArrayList<>();
+        for (StockBasicsDTO dto : list) {
+            StockBasicsVO vo = new StockBasicsVO();
+            BeanUtils.copyProperties(dto, vo);
+            vos.add(vo);
+        }
+        return new PageInfo<>(vos);
+    }
+
 
     @Override
     public int queryStockBasicsCount() {
