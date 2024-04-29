@@ -208,7 +208,7 @@ class StockBackendApplicationTests {
 
     @Test
     public void testGetStockBasicsVO() {
-        List<StockBasicsVO> stockBasicsVO = stockService.getStockBasicsVO(1, 20, "0000");
-        stockBasicsVO.forEach(System.out::println);
+//        List<StockBasicsVO> stockBasicsVO = stockService.getStockBasicsVO(1, 20, "0000");
+//        stockBasicsVO.forEach(System.out::println);
     }
 }

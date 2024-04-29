@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController
@@ -45,7 +46,7 @@ public class StockController {
     }
 
     // 获取某个股票的日线数据（4个月）
-    @PostMapping("/daily")
+    @GetMapping("/daily")
     public RestBean<List<StockRealVO>> getStockDailyData(@RequestBody @Valid StockDailyVO vo) {
         LocalDate date = vo.getDate();
         LocalDate date1 = date.plusMonths(-4);

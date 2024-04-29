@@ -10,7 +10,6 @@ import java.util.List;
 public interface StockService {
     PageInfo<StockBasicsDTO> selectAllBasicsStockDataS(int pageNum, int pageSize);
     List<StockBasicsDTO> selectAllBasicsStockData(int pageNum, int pageSize);
-    List<StockBasicsDTO> selectAllBasicsStock(int pageNum, int pageSize, String tsCode);
     String saveStockBasics();
     List<StockBasicsDTO> getStockBasicsDTO(String tsCode);
     PageInfo<StockBasicsVO> getStockBasicsVO(int pageNum, int pageSize, String tsCode);

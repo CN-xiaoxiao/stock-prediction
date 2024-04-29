@@ -26,7 +26,24 @@ const router = createRouter({
         }, {
             path: '/index',
             name: 'index',
-            component: ()=> import('@/views/IndexView.vue')
+            component: ()=> import('@/views/IndexView.vue'),
+            children: [
+                {
+                    path: '',
+                    name: 'main-main',
+                    component: ()=>import('@/views/main/MainView.vue')
+                },
+                {
+                    path: '/favorite',
+                    name: 'main-favorite',
+                    component: () => import('@/views/main/FavoriteView.vue')
+                },
+                {
+                    path: '/security',
+                    name: 'main-security',
+                    component: () => import('@/views/main/SecurityView.vue')
+                }
+            ]
         }
     ]
 })

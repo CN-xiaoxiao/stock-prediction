@@ -77,11 +77,6 @@ public class StockServiceImpl implements StockService {
         return stockBasicsMapper.queryStockBasicsData();
     }
 
-    @Override
-    public List<StockBasicsDTO> selectAllBasicsStock(int pageNum, int pageSize, String tsCode) {
-        PageHelper.startPage(pageNum, pageSize);
-        return stockBasicsMapper.queryStockBasicsData();
-    }
 
     /**
      * 保存（更新）股票基础数据
