@@ -53,7 +53,7 @@ public class SpiderUtils {
     /**
      * 从深圳证券交易所爬取交易日历
      * @param date 时间 格式如下: 2024-03 或者 2024-10
-     * @return 返回一个不是交易日的字符串集合。
+     * @return 返回一个非交易日的字符串集合。
      */
     public List<String> getTradingDay(String date) throws IOException, InterruptedException {
         HttpClient client = HttpClient.newHttpClient();

@@ -69,7 +69,6 @@ const handleCurrentChange = (val) => {
         <el-table
             :data="tableData"
             :cell-style="cellStyle"
-
             stripe
             empty-text="null"
             :row-class-name="tableRowClassName"

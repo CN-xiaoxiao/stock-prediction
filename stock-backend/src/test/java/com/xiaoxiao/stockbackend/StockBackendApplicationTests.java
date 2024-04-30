@@ -2,6 +2,7 @@ package com.xiaoxiao.stockbackend;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.xiaoxiao.stockbackend.entity.dto.StockBasicsDTO;
+import com.xiaoxiao.stockbackend.entity.dto.StockMarketDTO;
 import com.xiaoxiao.stockbackend.entity.vo.request.StockApiVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockApiResponse;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockBasicsVO;
@@ -137,12 +138,31 @@ class StockBackendApplicationTests {
 //        for (HotStockVO hotStockVO : hotStock) {
 //            System.out.println(hotStockVO);
 //        }
-        List<String> tradingDay = spiderUtils.getTradingDay("2024-03");
+
+        String date = "2021-12";
+
+        StockMarketDTO stockMarket = stockService.getStockMarket(date);
+        if (stockMarket != null) {return;}
+
+        List<String> tradingDay = spiderUtils.getTradingDay(date);
         if (tradingDay != null && !tradingDay.isEmpty()) {
-            for (String s : tradingDay) {
-                System.out.println(s);
-            }
+            String jsonString = JSONObject.toJSONString(tradingDay);
+            stockService.saveStockMarket(date, jsonString);
         }
+
+//        for (int i = 1; i < 10; i++) {
+//            String date = "2021-0";
+//            date = date + i;
+//
+//            StockMarketDTO stockMarket = stockService.getStockMarket(date);
+//            if (stockMarket != null) {return;}
+//
+//            List<String> tradingDay = spiderUtils.getTradingDay(date);
+//            if (tradingDay != null && !tradingDay.isEmpty()) {
+//                String jsonString = JSONObject.toJSONString(tradingDay);
+//                stockService.saveStockMarket(date, jsonString);
+//            }
+//        }
     }
 
     @Test
@@ -210,5 +230,19 @@ class StockBackendApplicationTests {
     public void testGetStockBasicsVO() {
 //        List<StockBasicsVO> stockBasicsVO = stockService.getStockBasicsVO(1, 20, "0000");
 //        stockBasicsVO.forEach(System.out::println);
+    }
+
+    @Test
+    public void testRuntim() {
+        try {
+            t();
+        } catch (RuntimeException e) {
+            System.out.println("e.getMessage() = " + e.getMessage());
+        }
+        System.out.println(123);
+    }
+
+    private void t() {
+        throw new RuntimeException("testt");
     }
 }

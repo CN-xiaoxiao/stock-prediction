@@ -1,9 +1,6 @@
 package com.xiaoxiao.stockbackend.config;
 
-import com.xiaoxiao.stockbackend.task.HotStockJobBean;
-import com.xiaoxiao.stockbackend.task.StockBasicsJobBean;
-import com.xiaoxiao.stockbackend.task.StockMarketJobBean;
-import com.xiaoxiao.stockbackend.task.StockRealJobBean;
+import com.xiaoxiao.stockbackend.task.*;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -43,6 +40,18 @@ public class QuartzConfiguration {
     public JobDetail stockRealJobDetailBean() {
         return JobBuilder.newJob(StockRealJobBean.class)
                 .withIdentity("predict-stock-real-task")
+                .storeDurably()
+                .build();
+    }
+
+    /**
+     * 定时更新股票交易的历史数据
+     * @return
+     */
+    @Bean("stockRealHistoryJobDetail")
+    public JobDetail stockRealHistoryJobDetailBean() {
+        return JobBuilder.newJob(StockRealHistoryJobBean.class)
+                .withIdentity("predict-stock-real-history-task")
                 .storeDurably()
                 .build();
     }
@@ -88,6 +97,17 @@ public class QuartzConfiguration {
         return TriggerBuilder.newTrigger()
                 .forJob(detail)
                 .withIdentity("predict-stock-real-trigger")
+                .withSchedule(cron)
+                .build();
+    }
+
+    @Bean
+    public Trigger stockRealHistoryCronTriggerFactoryBean(@Qualifier("stockRealHistoryJobDetail") JobDetail detail) {
+        // 每天凌晨0点30分自动执行 ‘0 30 0 * * ? *’
+        CronScheduleBuilder cron = CronScheduleBuilder.cronSchedule("0 55 19 * * ? *");
+        return TriggerBuilder.newTrigger()
+                .forJob(detail)
+                .withIdentity("predict-stock-real-history-trigger")
                 .withSchedule(cron)
                 .build();
     }

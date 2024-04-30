@@ -112,6 +112,8 @@ public class StockDailyServiceImpl implements StockDailyService {
 
     /**
      * 获取（更新）ts代码 的历史交易数据
+     * 只更新到昨天（第三方数据中心请求次数限制），每天想快速更新需要一次拉取多个股票的交易信息
+     * 此部分单独调用。单独开一个定时任务，每天凌晨执行
      * @param tsCode 股票ts代码
      */
     @Override
@@ -127,7 +129,7 @@ public class StockDailyServiceImpl implements StockDailyService {
         StockHistoryVO stockHistoryVO = influxDBUtils.readRealData(sid, dtf.format(startDate), dtf.format(endDate));
         LocalDate yesterday = endDate.plusDays(-1);
         // 历史数据为空
-        if (stockHistoryVO == null || stockHistoryVO.getList().isEmpty()) { // 拉取2010年1月1号到昨天的数据
+        if (stockHistoryVO == null || stockHistoryVO.getList().isEmpty()) { // 拉取2010年1月1号到今天的数据
 
             Map<String, String> params = Map.of("ts_code", tsCode,
                     "start_date", "20100101", "end_date", dtf2.format(yesterday));
@@ -145,42 +147,69 @@ public class StockDailyServiceImpl implements StockDailyService {
             } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
-        } else {
+        } else { // 有历史数据
             List<JSONObject> list = stockHistoryVO.getList();
             String tradeDate = list.get(list.size() - 1).get("tradeDate").toString();
             LocalDate date = LocalDate.parse(tradeDate, dtf2);
             
             // 如果数据库中的最新的数据比昨天还早
             if (date.isBefore(yesterday)) {
-                boolean flag = this.inStockMarketDay(date, yesterday);
+                boolean flag = false;
+                try {
+                    flag = this.inStockMarketDay(date, yesterday);
+                } catch (RuntimeException e) {
+                    log.info("正在保存 {} 的日历信息", e.getMessage());
+                    stockService.saveStockMarket(e.getMessage());
+                    log.info("重新执行...");
+                    flag = this.inStockMarketDay(date, yesterday);
+                }
                 if (flag) return;
                 Map<String, String> params = Map.of("ts_code", tsCode,
-                        "start_date", dtf2.format(date.plusDays(1)), "end_date", dtf2.format(yesterday));
-                StockApiVO apiVO = netUtils.createApiVO("daily", netUtils.getToken(), params, null);
-                try {
-                    ArrayList<StockRealVO> items = netUtils.doPost(apiVO).getItems(StockRealVO.class);
-                    if (items != null && !items.isEmpty()) {
-                        items.forEach(v->influxDBUtils.writeRealData(v));
-                    }
-                } catch (IOException | InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+                        "start_date", dtf2.format(date.plusDays(1)),
+                        "end_date", dtf2.format(yesterday));
+                updateStockDaily(params);
             }
+//            else if (date.isEqual(yesterday)) { // 最新的数据是昨天
+//                boolean flag = this.inStockMarketDay(endDate, endDate);
+//                if (flag) return;
+//                Map<String, String> params = Map.of("ts_code", tsCode,
+//                        "start_date", dtf2.format(endDate), "end_date", dtf2.format(endDate));
+//                updateStockDaily(params);
+//            }
         }
     }
 
     /**
-     * 判断从一个范围内的日期是否在非交易日
+     * 提取出来的方法，用于获取股票交易数据并存储在数据库中
+     * @param params 请求参数
+     */
+    private void updateStockDaily(Map<String, String> params) {
+        StockApiVO apiVO = netUtils.createApiVO("daily", netUtils.getToken(), params, null);
+        try {
+            ArrayList<StockRealVO> items = netUtils.doPost(apiVO).getItems(StockRealVO.class);
+            if (items != null && !items.isEmpty()) {
+                items.forEach(v->influxDBUtils.writeRealData(v));
+            }
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 判断从一个范围内的日期是否在交易日
      * @param date 开始日期
      * @param yesterday 结束日期
-     * @return true: 在非交易日; false: 不在非交易日(有一个或多个)
+     * @return true: 不在交易日; false: 在交易日(有一个或多个)
      */
     private boolean inStockMarketDay(LocalDate date, LocalDate yesterday) {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM");
         DateTimeFormatter dtf2 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String format = dtf.format(date);
         StockMarketDTO stockMarket = stockService.getStockMarket(format);
-        if (stockMarket == null) throw new RuntimeException("没有 " + format +" 的休市日历");
+        if (stockMarket == null) {
+            log.warn("没有 {} 的休市日历", format);
+            throw new RuntimeException(format);
+        }
         String marketData = stockMarket.getData();
 
         do {

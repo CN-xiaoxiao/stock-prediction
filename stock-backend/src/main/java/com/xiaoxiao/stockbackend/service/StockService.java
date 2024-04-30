@@ -15,8 +15,10 @@ public interface StockService {
     PageInfo<StockBasicsVO> getStockBasicsVO(int pageNum, int pageSize, String tsCode);
     int queryStockBasicsCount();
     boolean saveStockMarket(String date, String data);
+    boolean saveStockMarket(String date);
     StockMarketDTO getStockMarket(String date);
     List<String> getStockTsCode(int pageNum, int pageSize);
+    List<String> getStockTsCode();
     long querySidByTsCode(String tsCode);
     List<StockBasicsVO> getHotStockData();
 }

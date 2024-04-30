@@ -52,7 +52,16 @@ public class StockController {
         LocalDate date1 = date.plusMonths(-4);
         List<StockRealVO> stockDailyHistory = stockDailyService.getStockDailyHistory(vo.getTsCode(), date1);
         return stockDailyHistory != null && !stockDailyHistory.isEmpty() ?
-                RestBean.success(stockDailyHistory):RestBean.failure(400, "输入参数有误");
+                RestBean.success(stockDailyHistory):RestBean.failure(400, "暂无数据");
+    }
+
+    // 获取某个股票的所有日线数据
+    @GetMapping("/daily-all")
+    public RestBean<List<StockRealVO>> getAllStockDailyData(@RequestParam @Valid String tsCode) {
+
+        List<StockRealVO> stockDailyHistory = stockDailyService.getStockDailyHistory(tsCode, LocalDate.parse("2010-01-01"));
+        return stockDailyHistory != null && !stockDailyHistory.isEmpty() ?
+                RestBean.success(stockDailyHistory):RestBean.failure(400, "暂无数据");
     }
 
     @GetMapping("/query")

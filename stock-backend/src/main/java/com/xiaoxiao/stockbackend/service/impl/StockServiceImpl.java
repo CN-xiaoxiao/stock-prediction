@@ -16,6 +16,7 @@ import com.xiaoxiao.stockbackend.service.StockService;
 import com.xiaoxiao.stockbackend.utils.Const;
 import com.xiaoxiao.stockbackend.utils.net.NetUtils;
 import com.xiaoxiao.stockbackend.utils.SnowflakeIdGenerator;
+import com.xiaoxiao.stockbackend.utils.net.SpiderUtils;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.ExecutorType;
@@ -50,6 +51,8 @@ public class StockServiceImpl implements StockService {
     StringRedisTemplate stringRedisTemplate;
     @Resource
     private SqlSessionFactory sqlSessionFactory;
+    @Resource
+    SpiderUtils spiderUtils;
 
 
     /**
@@ -128,7 +131,7 @@ public class StockServiceImpl implements StockService {
                 return "数据获取失败";
             }
         } else {
-            if (doDelistingAndNewStockBasics()) return null;
+            if (doDelintingAndNewStockBasics()) return null;
         }
         return null;
     }
@@ -186,6 +189,24 @@ public class StockServiceImpl implements StockService {
         }
     }
 
+    @Override
+    public boolean saveStockMarket(String date) {
+
+        List<String> tradingDay = null;
+        try {
+            tradingDay = spiderUtils.getTradingDay(date);
+        } catch (IOException | InterruptedException e) {
+            log.warn("获取股票交易日历失败: {}", e.getMessage());
+        }
+
+        if (tradingDay != null && !tradingDay.isEmpty()) {
+            String jsonString = JSONObject.toJSONString(tradingDay);
+            this.saveStockMarket(date, jsonString);
+        }
+
+        return true;
+    }
+
     /**
      * 获取股票交易日历
      * @param date 年月份 yyyy-MM
@@ -198,6 +219,8 @@ public class StockServiceImpl implements StockService {
 
     /**
      * 获取股票代码的 tsCode
+     * @param pageNum 开始页码
+     * @param pageSize 页容量
      * @return tsCode字符串集合
      */
     @Override
@@ -207,9 +230,18 @@ public class StockServiceImpl implements StockService {
     }
 
     /**
+     * 获取股票代码的 tsCode
+     * @return tsCode字符串集合
+     */
+    @Override
+    public List<String> getStockTsCode() {
+        return stockBasicsMapper.queryTsCode();
+    }
+
+    /**
      * 根据 tsCode 查询股票的sid
-     * @param tsCode
-     * @return
+     * @param tsCode tsCode
+     * @return 返回 tsCode 股票的sid
      */
     @Override
     public long querySidByTsCode(String tsCode) {
@@ -240,7 +272,7 @@ public class StockServiceImpl implements StockService {
     }
 
     /**
-     * 查询新上市的股票
+     * 查询并获取新上市的股票
      * @return 新上市的 StockBasicsVO 股票集合
      */
     private List<StockBasicsVO> getNewStockBasicsData() {
@@ -283,31 +315,29 @@ public class StockServiceImpl implements StockService {
 
     /**
      * 做退市判断和新上市股票的判断与逻辑
-     * @return
+     * @return 成功 false， 失败 true
      */
-    private boolean doDelistingAndNewStockBasics() {
+    private boolean doDelintingAndNewStockBasics() {
         log.info("已有数据，正在进行更新操作");
-        List<String> delisting = this.isDelisting();
-        if (delisting != null) {
+        List<String> delinting = this.isDelisting();
+        if (delinting != null && !delinting.isEmpty()) {
             // 处理退市股票
             log.info("正在处理退市股票");
         }
 
-        List<StockBasicsVO> newBasicsVos = this.getNewStockBasicsData();
+        List<StockBasicsVO> newBasicsVos = this.getNewStockBasicsData(); // 获取新上市的股票
         if (newBasicsVos != null && !newBasicsVos.isEmpty()) {
             log.info("正在处理添加新股票操作");
-            List<StockBasicsVO> newStockBasicsData = this.getNewStockBasicsData();
-            if (newStockBasicsData == null || newStockBasicsData.isEmpty()) {
-                return true;
-            } else {
-                for (StockBasicsVO data : newStockBasicsData) {
-                    StockBasicsDTO dto = new StockBasicsDTO();
-                    BeanUtils.copyProperties(data, dto);
-                    stockBasicsMapper.insertStockBasics(dto);
-                }
+            for (StockBasicsVO data : newBasicsVos) {
+                StockBasicsDTO dto = new StockBasicsDTO();
+                BeanUtils.copyProperties(data, dto);
+                stockBasicsMapper.insertStockBasics(dto);
             }
+
+            return false;
+        } else {
+            return true;
         }
-        return false;
     }
 
     private void saveJson(String json, String fileName) {
