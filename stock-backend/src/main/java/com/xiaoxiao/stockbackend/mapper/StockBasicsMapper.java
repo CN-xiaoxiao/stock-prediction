@@ -1,6 +1,7 @@
 package com.xiaoxiao.stockbackend.mapper;
 
 
+import com.xiaoxiao.stockbackend.entity.dto.Favorite;
 import com.xiaoxiao.stockbackend.entity.dto.StockBasicsDTO;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;

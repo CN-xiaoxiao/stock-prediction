@@ -1,13 +1,13 @@
 package com.xiaoxiao.stockbackend;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.xiaoxiao.stockbackend.entity.dto.Favorite;
 import com.xiaoxiao.stockbackend.entity.dto.StockBasicsDTO;
 import com.xiaoxiao.stockbackend.entity.dto.StockMarketDTO;
 import com.xiaoxiao.stockbackend.entity.vo.request.StockApiVO;
-import com.xiaoxiao.stockbackend.entity.vo.response.StockApiResponse;
-import com.xiaoxiao.stockbackend.entity.vo.response.StockBasicsVO;
-import com.xiaoxiao.stockbackend.entity.vo.response.StockHistoryVO;
-import com.xiaoxiao.stockbackend.entity.vo.response.StockRealVO;
+import com.xiaoxiao.stockbackend.entity.vo.response.*;
+import com.xiaoxiao.stockbackend.mapper.StockBasicsMapper;
+import com.xiaoxiao.stockbackend.mapper.StockFavoriteMapper;
 import com.xiaoxiao.stockbackend.service.StockDailyService;
 import com.xiaoxiao.stockbackend.service.StockService;
 import com.xiaoxiao.stockbackend.utils.InfluxDBUtils;
@@ -38,6 +38,10 @@ class StockBackendApplicationTests {
     StockDailyService stockDailyService;
     @Resource
     StockService stockService;
+    @Resource
+    StockBasicsMapper stockBasicsMapper;
+    @Resource
+    StockFavoriteMapper stockFavoriteMapper;
 
 
     @Test
@@ -124,11 +128,10 @@ class StockBackendApplicationTests {
 
     @Test
     public void testSplit() {
-        String s = "123";
+        String s = "123,456,789";
         String[] split = s.split(",");
-        for (String string : split) {
-            System.out.println(string);
-        }
+        List<String> list = List.of(split);
+        list.forEach(System.out::println);
     }
 
     @Test
@@ -244,5 +247,20 @@ class StockBackendApplicationTests {
 
     private void t() {
         throw new RuntimeException("testt");
+    }
+
+    @Test
+    public void testQueryFavoriteByUserId() {
+        FavoriteVO favoriteVO = stockService.queryFavoriteByUid(4);
+        System.out.println(favoriteVO);
+    }
+
+    @Test
+    public void testInsertFavorite() {
+        Favorite favorite = new Favorite();
+        favorite.setUid(1);
+        favorite.setFavoriteList("123,456,789");
+        boolean b = stockFavoriteMapper.updateFavorite(favorite);
+        System.out.println(favorite);
     }
 }

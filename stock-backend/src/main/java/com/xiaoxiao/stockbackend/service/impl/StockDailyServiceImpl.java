@@ -169,13 +169,6 @@ public class StockDailyServiceImpl implements StockDailyService {
                         "end_date", dtf2.format(yesterday));
                 updateStockDaily(params);
             }
-//            else if (date.isEqual(yesterday)) { // 最新的数据是昨天
-//                boolean flag = this.inStockMarketDay(endDate, endDate);
-//                if (flag) return;
-//                Map<String, String> params = Map.of("ts_code", tsCode,
-//                        "start_date", dtf2.format(endDate), "end_date", dtf2.format(endDate));
-//                updateStockDaily(params);
-//            }
         }
     }
 
@@ -190,6 +183,7 @@ public class StockDailyServiceImpl implements StockDailyService {
             if (items != null && !items.isEmpty()) {
                 items.forEach(v->influxDBUtils.writeRealData(v));
             }
+            Thread.sleep(500);  // 防止请求接口过快被封禁（一分钟只能请求120次）
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }

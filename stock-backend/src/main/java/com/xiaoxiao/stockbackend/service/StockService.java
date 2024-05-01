@@ -1,8 +1,10 @@
 package com.xiaoxiao.stockbackend.service;
 
 import com.github.pagehelper.PageInfo;
+import com.xiaoxiao.stockbackend.entity.dto.Favorite;
 import com.xiaoxiao.stockbackend.entity.dto.StockBasicsDTO;
 import com.xiaoxiao.stockbackend.entity.dto.StockMarketDTO;
+import com.xiaoxiao.stockbackend.entity.vo.response.FavoriteVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockBasicsVO;
 
 import java.util.List;
@@ -21,4 +23,7 @@ public interface StockService {
     List<String> getStockTsCode();
     long querySidByTsCode(String tsCode);
     List<StockBasicsVO> getHotStockData();
+    FavoriteVO queryFavoriteByUid(int uid);
+    boolean updateFavorite(Favorite favorite);
+    boolean insertFavorite(Favorite favorite);
 }

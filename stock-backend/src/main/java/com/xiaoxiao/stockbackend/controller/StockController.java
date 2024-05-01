@@ -2,8 +2,10 @@ package com.xiaoxiao.stockbackend.controller;
 
 import com.github.pagehelper.PageInfo;
 import com.xiaoxiao.stockbackend.entity.RestBean;
+import com.xiaoxiao.stockbackend.entity.dto.Favorite;
 import com.xiaoxiao.stockbackend.entity.dto.StockBasicsDTO;
 import com.xiaoxiao.stockbackend.entity.vo.request.StockDailyVO;
+import com.xiaoxiao.stockbackend.entity.vo.response.FavoriteVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockBasicsVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockRealVO;
 import com.xiaoxiao.stockbackend.service.StockDailyService;
@@ -15,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 @RestController
 @RequestMapping("/api/stock")
@@ -71,4 +75,23 @@ public class StockController {
         return RestBean.success(stockService.getStockBasicsVO(pageNum, pageSize, tsCode));
     }
 
+    @GetMapping("/favorite")
+    public RestBean<FavoriteVO> queryFavorite(@RequestParam @Valid int uid,
+                                              @RequestAttribute("id") int id) {
+        if (uid != id) return RestBean.failure(400, "请求参数有误");
+        return RestBean.success(stockService.queryFavoriteByUid(uid));
+    }
+
+    @PostMapping("/favorite")
+    public RestBean<Void> updateFavorite(@RequestParam @Valid int uid,
+                                         @RequestParam @Valid String favoriteList,
+                                         @RequestAttribute("id") int id) {
+        if (uid != id) return RestBean.failure(400, "请求参数有误");
+
+        Favorite favorite = new Favorite();
+        favorite.setUid(uid);
+        favorite.setFavoriteList(favoriteList);
+        if (stockService.updateFavorite(favorite)) return RestBean.success();
+        else return RestBean.failure(400, "更新失败");
+    }
 }

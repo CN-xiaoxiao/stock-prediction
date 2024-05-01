@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * @ClassName StockRealHistoryJobBean
- * @Description TODO
+ * @Description 股票历史交易数据的 Job Bean 处理逻辑
  * @Author xiaoxiao
  * @Version 1.0
  */

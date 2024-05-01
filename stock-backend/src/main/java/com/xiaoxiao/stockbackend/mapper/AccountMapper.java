@@ -18,4 +18,7 @@ public interface AccountMapper {
 
     @Update("update account set password = #{password} where email = #{email}")
     boolean updatePasswordByEmail(EmailResetVO vo);
+
+    @Select("select * from account where id = #{uid}")
+    Account findAccountByUid(int uid);
 }

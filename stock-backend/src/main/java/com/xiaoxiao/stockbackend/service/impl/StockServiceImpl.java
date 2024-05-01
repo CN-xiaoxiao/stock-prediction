@@ -4,13 +4,18 @@ import com.alibaba.fastjson2.JSONObject;
 import com.alibaba.fastjson2.TypeReference;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.xiaoxiao.stockbackend.entity.dto.Account;
+import com.xiaoxiao.stockbackend.entity.dto.Favorite;
 import com.xiaoxiao.stockbackend.entity.dto.StockBasicsDTO;
 import com.xiaoxiao.stockbackend.entity.dto.StockMarketDTO;
 import com.xiaoxiao.stockbackend.entity.vo.request.StockApiVO;
+import com.xiaoxiao.stockbackend.entity.vo.response.FavoriteVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.NewStockVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockApiResponse;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockBasicsVO;
+import com.xiaoxiao.stockbackend.mapper.AccountMapper;
 import com.xiaoxiao.stockbackend.mapper.StockBasicsMapper;
+import com.xiaoxiao.stockbackend.mapper.StockFavoriteMapper;
 import com.xiaoxiao.stockbackend.mapper.StockMarketMapper;
 import com.xiaoxiao.stockbackend.service.StockService;
 import com.xiaoxiao.stockbackend.utils.Const;
@@ -45,6 +50,10 @@ public class StockServiceImpl implements StockService {
     StockBasicsMapper stockBasicsMapper;
     @Resource
     StockMarketMapper stockMarketMapper;
+    @Resource
+    AccountMapper accountMapper;
+    @Resource
+    StockFavoriteMapper stockFavoriteMapper;
     @Resource
     SnowflakeIdGenerator idGenerator;
     @Resource
@@ -264,6 +273,46 @@ public class StockServiceImpl implements StockService {
             list.add(stockBasicsVO);
         }
         return list;
+    }
+
+    @Override
+    public FavoriteVO queryFavoriteByUid(int uid) {
+        if (!isAccount(uid)) return null;
+        FavoriteVO vo = new FavoriteVO();
+        Favorite favorite = stockFavoriteMapper.queryFavoriteByUserID(uid);
+        BeanUtils.copyProperties(favorite, vo);
+        List<String> list = List.of(favorite.getFavoriteList().split(","));
+        vo.setFavoriteList(list);
+        return vo;
+    }
+
+    @Override
+    public boolean updateFavorite(Favorite favorite) {
+        int uid = favorite.getUid();
+        if (!isAccount(uid)) return false;
+        if (stockFavoriteMapper.queryFavoriteByUserID(uid) == null) {
+            stockFavoriteMapper.insertFavorite(favorite);
+        }
+        return stockFavoriteMapper.updateFavorite(favorite);
+    }
+
+    @Override
+    public boolean insertFavorite(Favorite favorite) {
+        int uid = favorite.getUid();
+        if (!isAccount(uid)) return false;
+        Favorite favorite1 = stockFavoriteMapper.queryFavoriteByUserID(uid);
+        if (favorite1 != null) return false;    // 已经有数据
+        return stockFavoriteMapper.insertFavorite(favorite);
+    }
+
+    /**
+     * 判断是否操作 uid 的账户
+     * @param uid 用户 id
+     * @return true: 存在；false: 不存在
+     */
+    private boolean isAccount(int uid) {
+        Account accountByUid = accountMapper.findAccountByUid(uid);
+        return accountByUid != null;
     }
 
     // 判断是否退市，第三方接口没有，只能爬虫爬取。
