@@ -3,6 +3,7 @@ package com.xiaoxiao.stockpredict.controller;
 import com.alibaba.fastjson2.JSONObject;
 import com.xiaoxiao.stockpredict.entity.Response;
 import com.xiaoxiao.stockpredict.entity.StockData;
+import com.xiaoxiao.stockpredict.entity.dto.StockHistoryPrice;
 import com.xiaoxiao.stockpredict.entity.vo.request.StockDailyVO;
 import com.xiaoxiao.stockpredict.entity.vo.request.StockHistoryVO;
 import com.xiaoxiao.stockpredict.entity.vo.response.StockPredictPriceVO;
@@ -29,10 +30,9 @@ public class PredictController {
 
     @GetMapping("/test")
     public String predict() {
-        StockData sd = new StockData();
-        sd.setClose(123.55);
-        sd.setOpen(123.55666);
-        return JSONObject.toJSONString(sd);
+        List<StockHistoryPrice> trainingStockData = stockPredictService.getTrainingStockData("000001.SZ");
+        trainingStockData.forEach(System.out::println);
+        return JSONObject.toJSONString("123");
     }
 
     /**

@@ -10,6 +10,7 @@ import com.xiaoxiao.stockbackend.entity.vo.response.*;
 import com.xiaoxiao.stockbackend.mapper.StockBasicsMapper;
 import com.xiaoxiao.stockbackend.mapper.StockFavoriteMapper;
 import com.xiaoxiao.stockbackend.service.StockDailyService;
+import com.xiaoxiao.stockbackend.service.StockPredictService;
 import com.xiaoxiao.stockbackend.service.StockService;
 import com.xiaoxiao.stockbackend.utils.InfluxDBUtils;
 import com.xiaoxiao.stockbackend.utils.net.SpiderUtils;
@@ -46,6 +47,8 @@ class StockBackendApplicationTests {
     StockBasicsMapper stockBasicsMapper;
     @Resource
     StockFavoriteMapper stockFavoriteMapper;
+    @Resource
+    StockPredictService stockPredictService;
 
 
     @Test
@@ -353,5 +356,11 @@ class StockBackendApplicationTests {
 
         String jsonString = JSONObject.toJSONString(stockDailyHistory);
         System.out.println(jsonString);
+    }
+
+    @Test
+    public void testTrainingList() {
+        List<String> strings = stockPredictService.trainingList();
+        strings.forEach(System.out::println);
     }
 }

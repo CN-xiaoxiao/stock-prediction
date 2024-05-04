@@ -25,6 +25,8 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -251,7 +253,13 @@ public class StockPredictWithLSTM implements IModelService {
             predicts[i] = net.rnnTimeStep(testData.get(i).getKey()).getRow(exampleLength - 1).mul(max.sub(min)).add(min);
 
             StockTestPrice stockTestPrice = new StockTestPrice();
-            stockTestPrice.setDate(dateList.get(i));
+
+            String s = dateList.get(i);
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
+            LocalDate date = LocalDate.parse(s, dtf);
+            date = date.plusDays(1);
+            stockTestPrice.setDate(dtf.format(date));
+
             stockTestPrice.setSymbol(stockCode);
             stockTestPrice.setOpen(predicts[i].getDouble(0));
             stockTestPrice.setClose(predicts[i].getDouble(1));
@@ -263,7 +271,7 @@ public class StockPredictWithLSTM implements IModelService {
         return stockTestPriceList;
     }
 
-    // TODO 重写
+
     private List<INDArray> generateTestDataSet (List<StockData> stockDataList,
                                                 double[] minArray,
                                                 double[] maxArray,

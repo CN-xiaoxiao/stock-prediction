@@ -1,6 +1,8 @@
 package com.xiaoxiao.stockpredict.service.impl;
 
+import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.xiaoxiao.stockpredict.entity.Response;
 import com.xiaoxiao.stockpredict.entity.StockData;
 import com.xiaoxiao.stockpredict.entity.dto.StockHistoryPrice;
 import com.xiaoxiao.stockpredict.entity.dto.StockPredictPrice;
@@ -10,6 +12,7 @@ import com.xiaoxiao.stockpredict.entity.vo.request.StockHistoryVO;
 import com.xiaoxiao.stockpredict.entity.vo.response.StockPredictPriceVO;
 import com.xiaoxiao.stockpredict.model.service.IModelService;
 import com.xiaoxiao.stockpredict.service.StockPredictService;
+import com.xiaoxiao.stockpredict.utils.NetUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -24,7 +27,7 @@ import java.util.List;
 
 /**
  * @ClassName StockPredictServiceImpl
- * @Description TODO
+ * @Description 股票预测服务类
  * @Author xiaoxiao
  * @Version 1.0
  */
@@ -35,9 +38,27 @@ public class StockPredictServiceImpl implements StockPredictService {
     @Resource
     IModelService stockPredictWithLSTM;
 
+    @Resource
+    NetUtils netUtils;
+
+    /**
+     * 从服务器获取待训练的股票列表
+     * @return 待训练的股票列表集合
+     */
     @Override
-    public List<StockData> getStockData() {
-        return Collections.emptyList();
+    public List<StockData> getToBeTrainingStock() {
+        Response response = netUtils.doGet("/trainingList");
+        if (!response.success()) {
+            return Collections.emptyList();
+        }
+        List<String> strings = JSONArray.parseArray(response.getData().toString(), String.class);
+        List<StockData> stockDataList = new ArrayList<>();
+        strings.forEach(v -> {
+            StockData sd = new StockData();
+            sd.setSymbol(v);
+            stockDataList.add(sd);
+        });
+        return stockDataList;
     }
 
     @Override
@@ -54,7 +75,6 @@ public class StockPredictServiceImpl implements StockPredictService {
         List<StockPredictPrice> stockPredictPriceList = stockPredictWithLSTM.modelPredict(stockHistoryPriceList, flag);
         List<StockPredictPriceVO> stockPredictPriceVOList = new ArrayList<>();
 
-        // TODO 设置日期
         this.setStockPredictDate(stockPredictPriceList, stockHistoryPriceList);
         for (StockPredictPrice stockPredictPrice : stockPredictPriceList) {
             StockPredictPriceVO stockPredictPriceVO = new StockPredictPriceVO();
@@ -78,6 +98,19 @@ public class StockPredictServiceImpl implements StockPredictService {
         String stockCode = stockHistoryPriceList.get(0).getSymbol();
         List<StockTestPrice> stockTestPriceList = stockPredictWithLSTM.modelTrain(stockHistoryPriceList, stockCode);
         stockTestPriceList.forEach(System.out::println);
+    }
+
+    @Override
+    public List<StockHistoryPrice> getTrainingStockData(String stockCode) {
+        Response response = netUtils.doPost("/trainingData", stockCode);
+//        System.out.println("response.getData() = " + response.getData());
+        List<StockHistoryPrice> stockHistoryPriceList = new ArrayList<>();
+        List<StockDailyVO> stockDailyVOS = JSONArray.parseArray(response.getData().toString(), StockDailyVO.class);
+        for (StockDailyVO stockDailyVO : stockDailyVOS) {
+            StockHistoryPrice stockHistoryPrice = getStockHistoryPrice(stockDailyVO);
+            stockHistoryPriceList.add(stockHistoryPrice);
+        }
+        return stockHistoryPriceList;
     }
 
     private StockHistoryPrice getStockHistoryPrice(StockDailyVO stockDailyVO) {

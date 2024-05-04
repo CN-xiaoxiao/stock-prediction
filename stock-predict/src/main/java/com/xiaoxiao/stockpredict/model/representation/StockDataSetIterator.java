@@ -57,6 +57,8 @@ public class StockDataSetIterator implements DataSetIterator {
         List<StockData> stockDataList = dataList;
         if (dataList == null || dataList.isEmpty()) {
             stockDataList = readStockDataFromFile(filename, symbol);
+        } else {
+            initMaxAndMinArr(stockDataList);
         }
         this.miniBatchSize = miniBatchSize;
         this.exampleLength = exampleLength;
@@ -65,6 +67,21 @@ public class StockDataSetIterator implements DataSetIterator {
         train = stockDataList.subList(0, split);
         test = generateTestDataSet(stockDataList.subList(split, stockDataList.size()));
         initializeOffsets();
+    }
+
+    private void initMaxAndMinArr(List<StockData> stockDataList) {
+        double maxOpen = stockDataList.stream().map(StockData::getOpen).mapToDouble(s -> s).max().orElse(0);
+        double minOpen = stockDataList.stream().map(StockData::getOpen).mapToDouble(s -> s).min().orElse(0);
+        double maxClose = stockDataList.stream().map(StockData::getClose).mapToDouble(s -> s).max().orElse(0);
+        double minClose = stockDataList.stream().map(StockData::getClose).mapToDouble(s -> s).min().orElse(0);
+        double maxLow = stockDataList.stream().map(StockData::getLow).mapToDouble(s -> s).max().orElse(0);
+        double minLow = stockDataList.stream().map(StockData::getLow).mapToDouble(s -> s).min().orElse(0);
+        double maxHigh = stockDataList.stream().map(StockData::getHigh).mapToDouble(s -> s).max().orElse(0);
+        double minHigh = stockDataList.stream().map(StockData::getHigh).mapToDouble(s -> s).min().orElse(0);
+        double maxVolume = stockDataList.stream().map(StockData::getVolume).mapToDouble(s -> s).max().orElse(0);
+        double minVolume = stockDataList.stream().map(StockData::getVolume).mapToDouble(s -> s).min().orElse(0);
+        minArray = new double[]{minOpen, minClose, minLow, minHigh, minVolume};
+        maxArray = new double[]{maxOpen, maxClose, maxLow, maxHigh, maxVolume};
     }
 
     /** initialize the mini-batch offsets */
@@ -216,7 +233,7 @@ public class StockDataSetIterator implements DataSetIterator {
     @Override public DataSet next() {
         return next(miniBatchSize);
     }
-    
+
     private List<Pair<INDArray, INDArray>> generateTestDataSet (List<StockData> stockDataList) {
     	int window = exampleLength + predictLength;
     	List<Pair<INDArray, INDArray>> test = new ArrayList<>();

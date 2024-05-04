@@ -4,6 +4,8 @@ import com.xiaoxiao.stockbackend.entity.dto.Favorite;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;
 
+import java.util.List;
+
 @Mapper
 public interface StockFavoriteMapper {
     @Select("""
@@ -24,4 +26,8 @@ public interface StockFavoriteMapper {
 
     @Update("update stock_favorite set favorite_list = #{favoriteList} where uid = #{uid}")
     boolean updateFavorite(Favorite favorite);
+
+    @Select("select * from stock_favorite")
+    @ResultMap("favoriteMap")
+    List<Favorite> queryAllUserFavorite();
 }

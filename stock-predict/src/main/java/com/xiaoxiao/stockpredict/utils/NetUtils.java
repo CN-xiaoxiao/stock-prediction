@@ -42,11 +42,11 @@ public class NetUtils {
         return response.success();
     }
 
-    private Response doGet(String url) {
+    public Response doGet(String url) {
         return this.doGet(url, config.getAddress(), config.getToken());
     }
 
-    private Response doGet(String url, String address, String token) {
+    public Response doGet(String url, String address, String token) {
         String URL = address + "/treating" + url;
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", token);
@@ -60,8 +60,9 @@ public class NetUtils {
         }
     }
 
-    private Response doPost(String url, Object data) {
-        String rawData = JSONObject.from(data).toJSONString();
+    public Response doPost(String url, Object data) {
+//        String rawData = JSONObject.from(data).toJSONString();
+        String rawData = JSONObject.toJSONString(data);
         String URL = config.getAddress() + "/treating" + url;
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

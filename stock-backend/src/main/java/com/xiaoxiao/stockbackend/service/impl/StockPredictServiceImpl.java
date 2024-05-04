@@ -1,7 +1,11 @@
 package com.xiaoxiao.stockbackend.service.impl;
 
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
+import com.xiaoxiao.stockbackend.entity.dto.Favorite;
 import com.xiaoxiao.stockbackend.entity.dto.TreatingTokenDTO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockRealVO;
+import com.xiaoxiao.stockbackend.mapper.StockFavoriteMapper;
 import com.xiaoxiao.stockbackend.mapper.TreatingTokenMapper;
 import com.xiaoxiao.stockbackend.service.StockPredictService;
 import jakarta.annotation.PostConstruct;
@@ -11,7 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
 import java.security.SecureRandom;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -25,6 +29,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class StockPredictServiceImpl implements StockPredictService {
     @Resource
     TreatingTokenMapper treatingTokenMapper;
+    @Resource
+    StockFavoriteMapper stockFavoriteMapper;
 
     private String registerToken = this.generateNewToken();
     private final Map<String, TreatingTokenDTO> treatingTokenCache = new ConcurrentHashMap<>();
@@ -82,6 +88,22 @@ public class StockPredictServiceImpl implements StockPredictService {
             }
         }
         return false;
+    }
+
+    /**
+     * 获取用户收藏夹中的股票
+     * @return 股票集合
+     */
+    @Override
+    public List<String> trainingList() {
+        List<Favorite> list = stockFavoriteMapper.queryAllUserFavorite();
+        Set<String> set = new HashSet<>();
+        for (Favorite favorite : list) {
+            String favoriteList = favorite.getFavoriteList();
+            List<String> strings = JSONArray.parseArray(favoriteList, String.class);
+            set.addAll(strings);
+        }
+        return new ArrayList<>(set);
     }
 
     /**

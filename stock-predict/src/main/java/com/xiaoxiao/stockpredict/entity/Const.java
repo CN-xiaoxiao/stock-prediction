@@ -10,4 +10,5 @@ package com.xiaoxiao.stockpredict.entity;
 public class Const {
     public static final String MIN_MAX_ARRAY_MIN = "min_max_array_min:";
     public static final String MIN_MAX_ARRAY_MAX  = "min_max_array_max:";
+    public static final String STOCK_MODEL = "stock_model:";
 }
