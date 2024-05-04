@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class StockRealVO {
-    private String tsCode;
     private String tradeDate;
+    private String tsCode;
     private double open;
     private double high;
     private double low;

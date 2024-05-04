@@ -9,6 +9,7 @@ import com.xiaoxiao.stockbackend.entity.vo.response.FavoriteVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockBasicsVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockRealVO;
 import com.xiaoxiao.stockbackend.service.StockDailyService;
+import com.xiaoxiao.stockbackend.service.StockPredictService;
 import com.xiaoxiao.stockbackend.service.StockService;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
@@ -28,6 +29,8 @@ public class StockController {
     StockService stockService;
     @Resource
     StockDailyService stockDailyService;
+    @Resource
+    StockPredictService stockPredictService;
 
     // 获得股票基础信息
     @GetMapping("/all-basics2")
@@ -93,5 +96,10 @@ public class StockController {
         favorite.setFavoriteList(favoriteList);
         if (stockService.updateFavorite(favorite)) return RestBean.success();
         else return RestBean.failure(400, "更新失败");
+    }
+
+    @GetMapping("/register")
+    public RestBean<String> registerTreating() {
+        return RestBean.success(stockPredictService.registerToken());
     }
 }

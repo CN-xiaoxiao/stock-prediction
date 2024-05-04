@@ -1,6 +1,7 @@
 package com.xiaoxiao.stockbackend;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.csvreader.CsvWriter;
 import com.xiaoxiao.stockbackend.entity.dto.Favorite;
 import com.xiaoxiao.stockbackend.entity.dto.StockBasicsDTO;
 import com.xiaoxiao.stockbackend.entity.dto.StockMarketDTO;
@@ -18,10 +19,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -67,9 +71,10 @@ class StockBackendApplicationTests {
 
     @Test
     void testInfluxDbRead() {
-        StockHistoryVO stockHistoryVO = influxDBUtils.readRealData(93707909304815616L, "2024-04-16", "2024-04-19");
+        StockHistoryVO stockHistoryVO = influxDBUtils.readRealData(93707909304815616L,
+                "2024-04-16", "2024-05-01");
         System.out.println("size: " + stockHistoryVO.getList().size());
-        System.out.println("stockHistoryVO = " + stockHistoryVO);
+        stockHistoryVO.getList().forEach(System.out::println);
     }
 
     @Test
@@ -262,5 +267,91 @@ class StockBackendApplicationTests {
         favorite.setFavoriteList("123,456,789");
         boolean b = stockFavoriteMapper.updateFavorite(favorite);
         System.out.println(favorite);
+    }
+
+    @Test
+    public void testJavaCSVWrite() {
+        List<StockRealVO> stockDailyHistory = stockDailyService.getStockDailyHistory("000001.SZ",
+                LocalDate.parse("2018-01-01"),
+                LocalDate.parse("2024-03-01"));
+        CsvWriter csvWriter = new CsvWriter("src/main/resources/demo.csv", ',', StandardCharsets.UTF_8);
+        String[] headers = {"date", "symbol", "open", "close", "low", "high", "volume"};
+        try {
+            csvWriter.writeRecord(headers);
+            for (StockRealVO stockRealVO : stockDailyHistory) {
+                csvWriter.writeRecord(this.ObjectToStringArray(stockRealVO));
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        csvWriter.close();
+    }
+
+    private <T> String[] ObjectToStringArray(T t) {
+        Field[] fields = t.getClass().getDeclaredFields();
+        String[] values = new String[7];
+        int count = 0;
+        for (Field field : fields) {
+            field.setAccessible(true);
+            if (field.getName().equals("preClose") ||
+                    field.getName().equals("change") ||
+                    field.getName().equals("amount") ||
+                    field.getName().equals("pctChg")) {
+                continue;
+            }
+            try {
+                values[count++] = field.get(t) + "";
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return values;
+    }
+
+    @Test
+    public void testObjectToStringArr() {
+        StockRealVO vo = new StockRealVO("000001.SZ",
+                "20240430",
+                10.8,
+                10.88,
+                10.73,
+                10.79,
+                10.81,
+                -0.02,
+                -0.185,
+                1324556.53,
+                1431407.709);
+
+        Field[] fields = vo.getClass().getDeclaredFields();
+        String[] values = new String[7];
+        int count = 0;
+        for (Field field : fields) {
+            field.setAccessible(true);
+            if (field.getName().equals("preClose") ||
+                    field.getName().equals("change") ||
+                    field.getName().equals("amount") ||
+                    field.getName().equals("pctChg")) {
+                continue;
+            }
+            try {
+                values[count++] = field.get(vo) + "";
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        for (String value : values) {
+            System.out.println(value);
+        }
+    }
+
+    @Test
+    public void testPredictServerPost() {
+        List<StockRealVO> stockDailyHistory = stockDailyService.getStockDailyHistory("000001.SZ",
+                LocalDate.parse("2016-01-01"),
+                LocalDate.parse("2024-03-01"));
+
+        String jsonString = JSONObject.toJSONString(stockDailyHistory);
+        System.out.println(jsonString);
     }
 }
