@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * @ClassName Response
- * @Description TODO
+ * @Description 统一请求响应实体类
  * @Author xiaoxiao
  * @Version 1.0
  */

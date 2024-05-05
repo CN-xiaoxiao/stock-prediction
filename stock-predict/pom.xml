@@ -74,6 +74,12 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!-- influxdb -->
+        <dependency>
+            <groupId>com.influxdb</groupId>
+            <artifactId>influxdb-client-java</artifactId>
+            <version>6.6.0</version>
+        </dependency>
         <!-- fastjson -->
         <dependency>
             <groupId>com.alibaba.fastjson2</groupId>

@@ -5,7 +5,7 @@ import lombok.Data;
 
 /**
  * @ClassName BusinessException
- * @Description TODO
+ * @Description 自定义异常，处理股票价格方面的异常
  * @Author xiaoxiao
  * @Version 1.0
  */

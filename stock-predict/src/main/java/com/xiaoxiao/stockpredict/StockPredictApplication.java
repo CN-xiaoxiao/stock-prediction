@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
  * @ClassName StockPredictApplication
- * @Description TODO
+ * @Description 数据处理服务器的springboot启动类
  * @Author xiaoxiao
  * @Version 1.0
  */

@@ -7,6 +7,7 @@ import com.xiaoxiao.stockbackend.entity.dto.StockBasicsDTO;
 import com.xiaoxiao.stockbackend.entity.vo.request.StockDailyVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.FavoriteVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockBasicsVO;
+import com.xiaoxiao.stockbackend.entity.vo.response.StockPredictVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.StockRealVO;
 import com.xiaoxiao.stockbackend.service.StockDailyService;
 import com.xiaoxiao.stockbackend.service.StockPredictService;
@@ -101,5 +102,12 @@ public class StockController {
     @GetMapping("/register")
     public RestBean<String> registerTreating() {
         return RestBean.success(stockPredictService.registerToken());
+    }
+
+    @GetMapping("/predict")
+    public RestBean<List<StockPredictVO>> predict(@RequestParam @Valid String tsCode) {
+        List<StockPredictVO> predict = stockPredictService.predict(tsCode);
+        if (predict != null && !predict.isEmpty()) return RestBean.success(predict);
+        else return RestBean.failure(400, "服务器内部错误");
     }
 }

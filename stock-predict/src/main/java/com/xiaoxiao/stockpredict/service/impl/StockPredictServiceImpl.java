@@ -63,6 +63,8 @@ public class StockPredictServiceImpl implements StockPredictService {
 
     @Override
     public List<StockPredictPriceVO> doPredict(StockHistoryVO vo, boolean flag) {
+        if (vo == null) return Collections.emptyList();
+
         List<JSONObject> list = vo.getList();
 
         List<StockHistoryPrice> stockHistoryPriceList = new ArrayList<>();
@@ -75,7 +77,7 @@ public class StockPredictServiceImpl implements StockPredictService {
         List<StockPredictPrice> stockPredictPriceList = stockPredictWithLSTM.modelPredict(stockHistoryPriceList, flag);
         List<StockPredictPriceVO> stockPredictPriceVOList = new ArrayList<>();
 
-        this.setStockPredictDate(stockPredictPriceList, stockHistoryPriceList);
+        this.setStockPredictDate(stockPredictPriceList, stockHistoryPriceList); // 设置预测股票的日期 TODO 要判断是否是休市日
         for (StockPredictPrice stockPredictPrice : stockPredictPriceList) {
             StockPredictPriceVO stockPredictPriceVO = new StockPredictPriceVO();
             BeanUtils.copyProperties(stockPredictPrice, stockPredictPriceVO);
@@ -86,7 +88,7 @@ public class StockPredictServiceImpl implements StockPredictService {
     }
 
     @Override
-    public void doTrain(StockHistoryVO vo) {
+    public List<StockTestPrice> doTrain(StockHistoryVO vo) {
         List<JSONObject> list = vo.getList();
 
         List<StockHistoryPrice> stockHistoryPriceList = new ArrayList<>();
@@ -97,13 +99,12 @@ public class StockPredictServiceImpl implements StockPredictService {
         }
         String stockCode = stockHistoryPriceList.get(0).getSymbol();
         List<StockTestPrice> stockTestPriceList = stockPredictWithLSTM.modelTrain(stockHistoryPriceList, stockCode);
-        stockTestPriceList.forEach(System.out::println);
+        return stockTestPriceList;
     }
 
     @Override
     public List<StockHistoryPrice> getTrainingStockData(String stockCode) {
         Response response = netUtils.doPost("/trainingData", stockCode);
-//        System.out.println("response.getData() = " + response.getData());
         List<StockHistoryPrice> stockHistoryPriceList = new ArrayList<>();
         List<StockDailyVO> stockDailyVOS = JSONArray.parseArray(response.getData().toString(), StockDailyVO.class);
         for (StockDailyVO stockDailyVO : stockDailyVOS) {
@@ -130,12 +131,18 @@ public class StockPredictServiceImpl implements StockPredictService {
                                      List<StockHistoryPrice> stockHistoryPriceList) {
         int i;
         int exampleLength = 22;
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
+
         for (i = 0; i < stockPredictPriceList.size(); i++) {
-            if (i + exampleLength < stockHistoryPriceList.size()) {
+            if (exampleLength == stockHistoryPriceList.size()) {
+                String date = stockHistoryPriceList.get(stockHistoryPriceList.size()-1).getDate();
+                LocalDate date1 = LocalDate.parse(date, dtf);
+                date1 = date1.plusDays(1);
+                stockPredictPriceList.get(i).setDate(dtf.format(date1));
+            } else if (i + exampleLength < stockHistoryPriceList.size()) {
                 stockPredictPriceList.get(i).setDate(stockHistoryPriceList.get(i + exampleLength).getDate());
             } else {
                 String date = stockPredictPriceList.get(i-1).getDate();
-                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
                 LocalDate date1 = LocalDate.parse(date, dtf);
                 date1 = date1.plusDays(1);
                 stockPredictPriceList.get(i).setDate(dtf.format(date1));

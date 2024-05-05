@@ -6,7 +6,6 @@ import com.xiaoxiao.stockbackend.entity.vo.response.StockRealVO;
 import com.xiaoxiao.stockbackend.service.StockDailyService;
 import com.xiaoxiao.stockbackend.service.StockPredictService;
 import jakarta.annotation.Resource;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -35,9 +34,9 @@ public class DataTreatingController {
 
     @GetMapping("/trainingList")
     public RestBean<String> trainingList() {
-        List<String> strings = stockPredictService.trainingList();
-//        List<String> strings = new ArrayList<>();
-//        strings.add("000001.SZ");
+//        List<String> strings = stockPredictService.trainingList();
+        List<String> strings = new ArrayList<>();
+        strings.add("000001.SZ");
         return RestBean.success(JSONObject.toJSONString(strings));
     }
 

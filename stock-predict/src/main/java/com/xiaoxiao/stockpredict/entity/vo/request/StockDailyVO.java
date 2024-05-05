@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * @ClassName StockDailyVO
- * @Description TODO
+ * @Description 股票每日信息VO
  * @Author xiaoxiao
  * @Version 1.0
  */

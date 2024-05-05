@@ -1,5 +1,6 @@
 package com.xiaoxiao.stockbackend;
 
+import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.csvreader.CsvWriter;
 import com.xiaoxiao.stockbackend.entity.dto.Favorite;
@@ -13,11 +14,14 @@ import com.xiaoxiao.stockbackend.service.StockDailyService;
 import com.xiaoxiao.stockbackend.service.StockPredictService;
 import com.xiaoxiao.stockbackend.service.StockService;
 import com.xiaoxiao.stockbackend.utils.InfluxDBUtils;
+import com.xiaoxiao.stockbackend.utils.net.DataTreatingUtils;
 import com.xiaoxiao.stockbackend.utils.net.SpiderUtils;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -49,6 +53,8 @@ class StockBackendApplicationTests {
     StockFavoriteMapper stockFavoriteMapper;
     @Resource
     StockPredictService stockPredictService;
+    @Resource
+    DataTreatingUtils dataTreatingUtils;
 
 
     @Test
@@ -362,5 +368,38 @@ class StockBackendApplicationTests {
     public void testTrainingList() {
         List<String> strings = stockPredictService.trainingList();
         strings.forEach(System.out::println);
+    }
+
+    @Test
+    public void testDataTreatingGet() {
+        DataTreatingResponse dataTreatingResponse = dataTreatingUtils.doGet("/test");
+        System.out.println(dataTreatingResponse);
+    }
+
+    @Test
+    public void testDataTreatingPost() {
+        List<StockRealVO> stockDailyHistory = stockDailyService.getStockDailyHistory("000001.SZ",
+                LocalDate.parse("2024-01-01"),
+                LocalDate.parse("2024-03-01"));
+        StockHistoryVO stockHistoryVO = new StockHistoryVO();
+        List<JSONObject> list = new ArrayList<>();
+        stockDailyHistory.forEach(v -> {
+            list.add(JSONObject.parseObject(JSONObject.toJSONString(v)));
+        });
+        stockHistoryVO.setList(list);
+        Map<String, String> paramMap = new HashMap<>();
+        paramMap.put("flag", "true");
+        DataTreatingResponse dataTreatingResponse = dataTreatingUtils.doPost("/predict", stockHistoryVO, paramMap);
+        Object data = dataTreatingResponse.data();
+        List<StockPredictVO> stockPredictVOS = JSONArray.parseArray(data.toString(), StockPredictVO.class);
+        stockPredictVOS.forEach(System.out::println);
+    }
+
+    @Test
+    public void testListSubList() {
+        List list = List.of(123,456,789,123,444,55);
+        list.forEach(System.out::println);
+        list = list.subList(list.size() - 3, list.size());
+        list.forEach(System.out::println);
     }
 }

@@ -26,7 +26,7 @@ public class QuartzConfiguration {
     @Bean
     public Trigger stockTrainCronTriggerFactoryBean(@Qualifier("stockTrainJobDetail") JobDetail detail) {
         // 每周六晚上0点10分执行一次 "0 10 0 ? * 7"
-        CronScheduleBuilder cron = CronScheduleBuilder.cronSchedule("0 10 0 ? * 7");
+        CronScheduleBuilder cron = CronScheduleBuilder.cronSchedule("0 51 18 * * ? *");
         return TriggerBuilder.newTrigger()
                 .forJob(detail)
                 .withIdentity("predict-stock-basics-trigger")

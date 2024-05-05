@@ -6,6 +6,7 @@ import com.xiaoxiao.stockpredict.entity.dto.StockHistoryPrice;
 import com.xiaoxiao.stockpredict.entity.dto.StockTestPrice;
 import com.xiaoxiao.stockpredict.model.service.IModelService;
 import com.xiaoxiao.stockpredict.service.StockPredictService;
+import com.xiaoxiao.stockpredict.utils.InfluxDBUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @ClassName StockTrainJobBean
@@ -32,6 +34,8 @@ public class StockTrainJobBean extends QuartzJobBean {
     StringRedisTemplate stringRedisTemplate;
     @Resource
     IModelService stockPredictWithLSTM;
+    @Resource
+    InfluxDBUtils influxDBUtils;
 
     @Override
     protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
@@ -56,10 +60,18 @@ public class StockTrainJobBean extends QuartzJobBean {
                 continue;
             }
             List<StockTestPrice> stockTestPrices = stockPredictWithLSTM.modelTrain(stockHistoryPriceList, stockCode);
+            try {
+                log.info("正在清除[{}]已保存的测试数据", stockCode);
+                influxDBUtils.deleteTestData(stockCode);
+                log.info("正在保存[{}]新的测试数据,共 {} 条", stockCode, stockTestPrices.size());
+                stockTestPrices.forEach(v -> influxDBUtils.writeTestData(v));
+            } catch (Exception e) {
+                log.warn("股票[{}]的训练数据保存到influxdb失败！,{}", stockCode, e.getMessage());
+            }
 
             long end = System.currentTimeMillis();
             log.info("股票[{}],模型训练完成，共耗时: {} 分钟", stockCode, (end - start) * 1.0 / 1000.0 / 60.0);
-            stringRedisTemplate.opsForValue().set(Const.STOCK_MODEL + stockCode, stockCode);
+            stringRedisTemplate.opsForValue().set(Const.STOCK_MODEL + stockCode, stockCode, 30, TimeUnit.DAYS);
         }
 
     }

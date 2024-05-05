@@ -1,19 +1,15 @@
-package com.xiaoxiao.stockpredict.entity.vo.response;
+package com.xiaoxiao.stockbackend.entity.vo.response;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
- * @ClassName StockPredictPrice
- * @Description 股票预测价格响应类
+ * @ClassName StockPredictVO
+ * @Description 股票预测实体类
  * @Author xiaoxiao
  * @Version 1.0
  */
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class StockPredictPriceVO {
+public class StockPredictVO {
     /**日期*/
     private String date;
     /**股票代码*/

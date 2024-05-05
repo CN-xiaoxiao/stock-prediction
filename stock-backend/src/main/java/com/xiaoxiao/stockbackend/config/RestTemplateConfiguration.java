@@ -1,4 +1,4 @@
-package com.xiaoxiao.stockpredict.config;
+package com.xiaoxiao.stockbackend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,5 +28,4 @@ public class RestTemplateConfiguration {
         //factory.setProxy(null);
         return factory;
     }
-
 }

@@ -1,32 +1,39 @@
 package com.xiaoxiao.stockpredict.entity.dto;
 
-import lombok.AllArgsConstructor;
+import com.influxdb.annotations.Column;
+import com.influxdb.annotations.Measurement;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+
+import java.time.Instant;
 
 /**
- * @ClassName StockHistoryPrice
- * @Description 股票历史价格实体类
+ * @ClassName StockTestPriceDTO
+ * @Description 用于保存到Influxdb中
  * @Author xiaoxiao
  * @Version 1.0
  */
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class StockHistoryPrice {
-    private long id;
+@Measurement(name = "test")
+public class StockTestPriceDTO {
     /**日期*/
-    private String date;
+    @Column(timestamp = true)
+    private Instant date;
     /**股票代码*/
+    @Column(tag = true)
     private String symbol;
     /**开盘价*/
+    @Column
     private double open;
     /**收盘价*/
+    @Column
     private double close;
     /**最低价*/
+    @Column
     private double low;
     /**最高价*/
+    @Column
     private double high;
     /**成交量*/
+    @Column
     private double volume;
 }

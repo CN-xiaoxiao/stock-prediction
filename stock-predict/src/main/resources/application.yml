@@ -5,3 +5,11 @@ spring:
     host: localhost
     port: 6379
     database: 8
+#    username: root
+#    password: root
+  influx:
+    url: http://localhost:8086
+    user: admin
+    password: 123456789
+    bucket: testData
+    org: xiaoxiao

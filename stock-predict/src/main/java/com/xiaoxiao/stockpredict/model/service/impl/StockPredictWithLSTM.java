@@ -79,7 +79,7 @@ public class StockPredictWithLSTM implements IModelService {
     private List<StockTestPrice> train(List<StockData> dataList, String stockCode) throws IOException {
         int batchSize = 64; // 一次训练选取的样本个数
         double splitRatio = 0.9;    // 学习率
-        int epochs = 10;   // 训练次数
+        int epochs = 10;   // 训练次数 TODO 修改为100
         String file = "";
 
         log.info("Create dataSet iterator...");
@@ -94,14 +94,11 @@ public class StockPredictWithLSTM implements IModelService {
         net.summary();
 
         log.info("Training...");
-        long start = System.currentTimeMillis();
         for (int i = 0; i < epochs; i++) {
             while (iterator.hasNext()) net.fit(iterator.next());
             iterator.reset();
             net.rnnClearPreviousState();
         }
-        long end = System.currentTimeMillis();
-        log.info("共耗时 {} 分钟", (end - start) * 1.0 / 1000.0 / 60.0);
 
         log.info("Saving model...");
         File locationToSave = new File("model/MODEL_".concat(stockCode)
@@ -180,7 +177,7 @@ public class StockPredictWithLSTM implements IModelService {
      */
     @SneakyThrows
     private List<StockPredictPrice> predictMore(String stockCode, List<StockHistoryPrice> historyPrices) {
-        if (historyPrices.isEmpty()) {
+        if (historyPrices.isEmpty() || historyPrices.size() < 22) {
             throw new BusinessException("股票价格数据错误！");
         }
 
@@ -256,7 +253,7 @@ public class StockPredictWithLSTM implements IModelService {
 
             String s = dateList.get(i);
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
-            LocalDate date = LocalDate.parse(s, dtf);
+            LocalDate date = LocalDate.parse(s, dtf);   // TODO 判断是否是休市日
             date = date.plusDays(1);
             stockTestPrice.setDate(dtf.format(date));
 

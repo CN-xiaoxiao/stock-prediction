@@ -3,7 +3,7 @@ package com.xiaoxiao.stockpredict.entity;
 
 /**
  * @ClassName Const
- * @Description TODO
+ * @Description 存放一些常用字段
  * @Author xiaoxiao
  * @Version 1.0
  */

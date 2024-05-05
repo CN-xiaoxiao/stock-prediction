@@ -2,9 +2,8 @@ package com.xiaoxiao.stockpredict.controller;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.xiaoxiao.stockpredict.entity.Response;
-import com.xiaoxiao.stockpredict.entity.StockData;
 import com.xiaoxiao.stockpredict.entity.dto.StockHistoryPrice;
-import com.xiaoxiao.stockpredict.entity.vo.request.StockDailyVO;
+import com.xiaoxiao.stockpredict.entity.dto.StockTestPrice;
 import com.xiaoxiao.stockpredict.entity.vo.request.StockHistoryVO;
 import com.xiaoxiao.stockpredict.entity.vo.response.StockPredictPriceVO;
 import com.xiaoxiao.stockpredict.service.StockPredictService;
@@ -12,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,10 +27,10 @@ public class PredictController {
     StockPredictService stockPredictService;
 
     @GetMapping("/test")
-    public String predict() {
-        List<StockHistoryPrice> trainingStockData = stockPredictService.getTrainingStockData("000001.SZ");
-        trainingStockData.forEach(System.out::println);
-        return JSONObject.toJSONString("123");
+    public Response predict() {
+//        List<StockHistoryPrice> trainingStockData = stockPredictService.getTrainingStockData("000001.SZ");
+//        trainingStockData.forEach(System.out::println);
+        return Response.successResponse();
     }
 
     /**
@@ -44,7 +42,7 @@ public class PredictController {
     public Response doPredict(@RequestBody @Valid StockHistoryVO vo,
                               @RequestParam(value = "flag",required = false,defaultValue = "false") boolean flag) {
         List<StockPredictPriceVO> stockPredictPriceVOS = stockPredictService.doPredict(vo, flag);
-        if (stockPredictPriceVOS!=null && !stockPredictPriceVOS.isEmpty()) {
+        if (stockPredictPriceVOS != null && !stockPredictPriceVOS.isEmpty()) {
             return Response.successResponse(stockPredictPriceVOS);
         }
         return Response.errorResponse("服务器内部错误");
@@ -52,7 +50,7 @@ public class PredictController {
 
     @PostMapping("/train")
     public Response doTrain(@RequestBody @Valid StockHistoryVO vo) {
-        stockPredictService.doTrain(vo);
+        List<StockTestPrice> stockTestPriceList = stockPredictService.doTrain(vo); // TODO 是否开辟一个子线程来完成模型训练任务？
         return Response.successResponse();
     }
 }

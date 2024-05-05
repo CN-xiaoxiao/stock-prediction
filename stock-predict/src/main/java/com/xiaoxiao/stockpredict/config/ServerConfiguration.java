@@ -19,7 +19,7 @@ import java.util.Scanner;
 
 /**
  * @ClassName ServerConfiguration
- * @Description TODO
+ * @Description 用于保存与服务器端的连接信息
  * @Author xiaoxiao
  * @Version 1.0
  */
@@ -36,7 +36,7 @@ public class ServerConfiguration implements ApplicationRunner {
         ConnectionConfig config = this.readConfiguration();
 
         if (config == null)
-            config = this.registerToServer();
+//            config = this.registerToServer();
         log.info("已于服务端建立连接...");
         return config;
     }
