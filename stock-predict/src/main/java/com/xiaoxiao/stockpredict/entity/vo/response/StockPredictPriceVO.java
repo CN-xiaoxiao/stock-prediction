@@ -14,10 +14,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class StockPredictPriceVO {
-    /**日期*/
-    private String date;
     /**股票代码*/
     private String symbol;
+    /**日期*/
+    private String date;
     /**开盘价*/
     private double open;
     /**收盘价*/

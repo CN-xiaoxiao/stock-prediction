@@ -113,6 +113,7 @@ public class StockPredictWithLSTM implements IModelService {
         INDArray max = Nd4j.create(iterator.getMaxArray());
         INDArray min = Nd4j.create(iterator.getMinArray());
 
+        log.info("Saving max and min array...");
         stringRedisTemplate.opsForValue().set(Const.MIN_MAX_ARRAY_MIN + stockCode,
                 JSONObject.toJSONString(iterator.getMinArray()));
         stringRedisTemplate.opsForValue().set(Const.MIN_MAX_ARRAY_MAX + stockCode,

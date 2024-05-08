@@ -1,5 +1,6 @@
 package com.xiaoxiao.stockbackend.service.impl;
 
+import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.alibaba.fastjson2.TypeReference;
 import com.github.pagehelper.PageHelper;
@@ -19,6 +20,7 @@ import com.xiaoxiao.stockbackend.mapper.StockFavoriteMapper;
 import com.xiaoxiao.stockbackend.mapper.StockMarketMapper;
 import com.xiaoxiao.stockbackend.service.StockService;
 import com.xiaoxiao.stockbackend.utils.Const;
+import com.xiaoxiao.stockbackend.utils.JwtUtils;
 import com.xiaoxiao.stockbackend.utils.net.NetUtils;
 import com.xiaoxiao.stockbackend.utils.SnowflakeIdGenerator;
 import com.xiaoxiao.stockbackend.utils.net.SpiderUtils;
@@ -62,6 +64,8 @@ public class StockServiceImpl implements StockService {
     private SqlSessionFactory sqlSessionFactory;
     @Resource
     SpiderUtils spiderUtils;
+    @Resource
+    JwtUtils jwtUtils;
 
 
     /**
@@ -303,6 +307,25 @@ public class StockServiceImpl implements StockService {
         Favorite favorite1 = stockFavoriteMapper.queryFavoriteByUserID(uid);
         if (favorite1 != null) return false;    // 已经有数据
         return stockFavoriteMapper.insertFavorite(favorite);
+    }
+
+    @Override
+    public boolean addFavorite(String tsCode, String token) {
+        int id = jwtUtils.getId(token);
+        if (!isAccount(id)) return false;
+        Favorite favorite = stockFavoriteMapper.queryFavoriteByUserID(id);
+        if (favorite == null) return false;
+
+        String favoriteList = favorite.getFavoriteList();
+        String[] split = favoriteList.split(",");
+        Set<String> tsCodeSet = new HashSet<>(List.of(split));
+        tsCodeSet.add(tsCode);
+        StringBuilder sb = new StringBuilder();
+        tsCodeSet.forEach(v -> sb.append(v).append(","));
+        sb.deleteCharAt(sb.length() - 1);
+        favorite.setFavoriteList(sb.toString());
+
+        return stockFavoriteMapper.updateFavorite(favorite);
     }
 
     /**

@@ -118,6 +118,11 @@ public class JwtUtils {
         return jwt.getClaim("id").asInt();
     }
 
+    public Integer getId(String headerToken) {
+        DecodedJWT jwt = this.resolveJwt(headerToken);
+        return this.getId(jwt);
+    }
+
     public Date expireTime() {
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.HOUR, expire * 24);

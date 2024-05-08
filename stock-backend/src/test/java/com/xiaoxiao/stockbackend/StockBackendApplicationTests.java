@@ -17,6 +17,7 @@ import com.xiaoxiao.stockbackend.utils.InfluxDBUtils;
 import com.xiaoxiao.stockbackend.utils.net.DataTreatingUtils;
 import com.xiaoxiao.stockbackend.utils.net.SpiderUtils;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -36,6 +37,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.util.*;
 
+@Slf4j
 @SpringBootTest
 class StockBackendApplicationTests {
     @Resource
@@ -280,10 +282,19 @@ class StockBackendApplicationTests {
 
     @Test
     public void testJavaCSVWrite() {
-        List<StockRealVO> stockDailyHistory = stockDailyService.getStockDailyHistory("000001.SZ",
-                LocalDate.parse("2018-01-01"),
-                LocalDate.parse("2024-03-01"));
-        CsvWriter csvWriter = new CsvWriter("src/main/resources/demo.csv", ',', StandardCharsets.UTF_8);
+        List<String> stockTsCode = stockService.getStockTsCode(1, 100);
+        for (String s : stockTsCode) {
+            log.info("正在保存股票[{}]的数据...", s);
+            this.doCSVWrite(s);
+        }
+        log.info("共保存[{}]条数据", stockTsCode.size());
+    }
+
+    private void doCSVWrite(String tsCode) {
+        List<StockRealVO> stockDailyHistory = stockDailyService.getStockDailyHistory(tsCode,
+                LocalDate.parse("2010-01-01"),
+                LocalDate.parse("2024-05-05")); // 3000多条数据
+        CsvWriter csvWriter = new CsvWriter("src/main/resources/data/".concat(tsCode).concat(".csv"), ',', StandardCharsets.UTF_8);
         String[] headers = {"date", "symbol", "open", "close", "low", "high", "volume"};
         try {
             csvWriter.writeRecord(headers);
@@ -293,7 +304,6 @@ class StockBackendApplicationTests {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
         csvWriter.close();
     }
 
@@ -401,5 +411,19 @@ class StockBackendApplicationTests {
         list.forEach(System.out::println);
         list = list.subList(list.size() - 3, list.size());
         list.forEach(System.out::println);
+    }
+
+    @Test
+    public void testJSONObjectToSet() {
+        Set<String> set = new HashSet<>();
+        set.add("1");
+        set.add("2");
+        set.add("3");
+        set.forEach(System.out::println);
+        String jsonString = JSONObject.toJSONString(set);
+        System.out.println("jsonString = " + jsonString);
+
+        List<String> strings = JSONArray.parseArray(jsonString, String.class);
+        System.out.println("strings = " + strings);
     }
 }

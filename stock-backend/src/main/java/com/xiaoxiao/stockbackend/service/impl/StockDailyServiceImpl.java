@@ -182,6 +182,7 @@ public class StockDailyServiceImpl implements StockDailyService {
             ArrayList<StockRealVO> items = netUtils.doPost(apiVO).getItems(StockRealVO.class);
             if (items != null && !items.isEmpty()) {
                 items.forEach(v->influxDBUtils.writeRealData(v));
+                log.info("共保存[{}]条数据", items.size());
             }
             Thread.sleep(500);  // 防止请求接口过快被封禁（一分钟只能请求120次）
         } catch (IOException | InterruptedException e) {

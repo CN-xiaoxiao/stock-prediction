@@ -6,13 +6,16 @@ import {useDark} from "@vueuse/core";
 import { ref } from "vue"
 import TabItem from "@/components/TabItem.vue";
 import {useRoute} from "vue-router";
+import {useStore} from "@/store";
 
+const store = useStore()
 const dark = ref(useDark())
 
 const tabs = [
   {id: 1, name: '首页', route: 'main-main'},
-  {id: 2, name: '收藏', route: 'main-favorite'},
-  {id: 3, name: '安全', route: 'main-security'}
+  {id: 2, name: '搜索', route: 'main-search'},
+  {id: 3, name: '收藏', route: 'main-favorite'},
+  {id: 4, name: '安全', route: 'main-security'}
 ]
 
 const route = useRoute()
@@ -44,19 +47,19 @@ function changePage(item) {
       <div class="tabs">
         <tab-item v-for="item in  tabs" :name="item.name"
                   :active="item.id === tab" @click="changePage(item)"/>
-        <div style="text-align: right;line-height: 16px;margin-right: 10px">
-          <!--        <div>-->
-          <el-tag type="success" size="small">管理员</el-tag>
-          <!--          <el-tag v-else size="small">子账户</el-tag>-->
-          <!--          {{store.user.username}}-->
-          <!--        </div>-->
-          <!--        <div style="font-size: 13px;color: grey">{{store.user.email}}</div>-->
-
-        </div>
         <el-switch style="margin: 0 20px"
                    v-model = "dark" active-color="#424242"
                    :active-action-icon = "Moon"
                    :inactive-action-icon = "Sunny"/>
+        <div style="text-align: right;line-height: 16px;margin-right: 10px">
+          <div>
+          <el-tag v-if="store.isAdmin" type="success" size="small">管理员</el-tag>
+          <el-tag v-else size="small">用户会员</el-tag>
+                    {{store.user.username}}
+          </div>
+          <div style="font-size: 13px;color: grey">{{store.user.email}}</div>
+
+        </div>
         <el-dropdown>
           <el-avatar class="avatar"
                      src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"/>

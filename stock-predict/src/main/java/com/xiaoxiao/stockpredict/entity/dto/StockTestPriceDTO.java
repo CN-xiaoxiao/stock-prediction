@@ -15,12 +15,12 @@ import java.time.Instant;
 @Data
 @Measurement(name = "test")
 public class StockTestPriceDTO {
-    /**日期*/
-    @Column(timestamp = true)
-    private Instant date;
     /**股票代码*/
     @Column(tag = true)
     private String symbol;
+    /**日期*/
+    @Column(timestamp = true)
+    private Instant date;
     /**开盘价*/
     @Column
     private double open;

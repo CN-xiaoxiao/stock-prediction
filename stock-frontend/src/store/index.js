@@ -6,7 +6,8 @@ export const useStore = defineStore('general', {
             user: {
                 role: '',
                 username: '',
-                email: ''
+                email: '',
+                img: ''
             }
         }
     },

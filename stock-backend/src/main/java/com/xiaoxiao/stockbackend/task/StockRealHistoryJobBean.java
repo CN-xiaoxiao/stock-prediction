@@ -33,11 +33,11 @@ public class StockRealHistoryJobBean extends QuartzJobBean {
 
         List<String> stockTsCodeList = stockService.getStockTsCode();
         for (String s : stockTsCodeList) {
-            log.info("更新股票代码为: {} 的历史交易信息", s);
+            log.info("正在更新股票代码为: {} 的历史交易信息", s);
             stockDailyService.updateStockDailyHistory(s);
         }
 
         long endTime = System.currentTimeMillis();
-        log.info("执行更新历史交易数据操作完成，共耗时 {} s", (endTime - startTime)*1.0 / 1000.0);
+        log.info("执行更新历史交易数据操作完成，共耗时 {} s", (endTime - startTime) * 1.0 / 1000.0);
     }
 }

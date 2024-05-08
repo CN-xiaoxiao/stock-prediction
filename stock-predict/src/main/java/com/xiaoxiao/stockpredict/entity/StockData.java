@@ -16,10 +16,10 @@ import lombok.experimental.Accessors;
 @NoArgsConstructor
 @Accessors(chain = true)
 public class StockData {
-    /**日期*/
-    private String date;
     /**股票代码*/
     private String symbol;
+    /**日期*/
+    private String date;
     /**开盘价*/
     private double open;
     /**收盘价*/

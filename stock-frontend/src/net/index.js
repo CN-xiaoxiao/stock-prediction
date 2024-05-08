@@ -1,5 +1,6 @@
 import axios from 'axios'
 import {ElMessage} from "element-plus";
+import {useStore} from "@/store/index.js";
 
 const authItemName = "access_token"
 
@@ -54,6 +55,16 @@ function internalPost(url, data, header, success, failure, error = defaultError)
     }).catch(err => error(err))
 }
 
+function internalPut(url, data, header, success, failure, error = defaultError) {
+    axios.put(url, data, { headers: header}).then(({data}) => {
+        if (data.code === 200) {
+            success(data.data);
+        } else {
+            failure(data.message, data.code, url)
+        }
+    }).catch(err => error(err))
+}
+
 function internalGet(url, header, success, failure, error = defaultError) {
     axios.get(url, { headers: header }).then(({data})=>{
         if (data.code === 200) {
@@ -72,6 +83,10 @@ function post(url, data, success, failure = defaultFailure) {
     internalPost(url, data, accessHeader(), success, failure)
 }
 
+function put(url, data, success, failure = defaultFailure) {
+    internalPut(url, data, accessHeader(), success, failure)
+}
+
 function login(username, password, remember, success, failure = defaultFailure) {
     internalPost('/api/auth/login', {
         username: username,
@@ -79,7 +94,13 @@ function login(username, password, remember, success, failure = defaultFailure) 
     }, {
         'Content-Type': 'application/x-www-form-urlencoded'
     }, (data) => {
+        console.log(data)
         storeAccessToken(data.token, remember, data.expire)
+        const store = useStore()
+        store.user.role = data.role
+        store.user.username = data.username
+        store.user.email = data.email
+        store.user.img = data.img
         ElMessage.success(`登录成功，欢迎 ${data.username} 来到我们的系统`)
         success(data)
     }, failure)
@@ -97,4 +118,4 @@ function unauthorized() {
     return !takeAccessToken()
 }
 
-export { login, logout, get, post, unauthorized }
+export { login, logout, get, post, put, unauthorized }

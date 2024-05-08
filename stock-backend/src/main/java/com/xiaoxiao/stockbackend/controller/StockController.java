@@ -5,13 +5,11 @@ import com.xiaoxiao.stockbackend.entity.RestBean;
 import com.xiaoxiao.stockbackend.entity.dto.Favorite;
 import com.xiaoxiao.stockbackend.entity.dto.StockBasicsDTO;
 import com.xiaoxiao.stockbackend.entity.vo.request.StockDailyVO;
-import com.xiaoxiao.stockbackend.entity.vo.response.FavoriteVO;
-import com.xiaoxiao.stockbackend.entity.vo.response.StockBasicsVO;
-import com.xiaoxiao.stockbackend.entity.vo.response.StockPredictVO;
-import com.xiaoxiao.stockbackend.entity.vo.response.StockRealVO;
+import com.xiaoxiao.stockbackend.entity.vo.response.*;
 import com.xiaoxiao.stockbackend.service.StockDailyService;
 import com.xiaoxiao.stockbackend.service.StockPredictService;
 import com.xiaoxiao.stockbackend.service.StockService;
+import com.xiaoxiao.stockbackend.utils.JwtUtils;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
@@ -54,22 +52,26 @@ public class StockController {
     }
 
     // 获取某个股票的日线数据（4个月）
-    @GetMapping("/daily")
-    public RestBean<List<StockRealVO>> getStockDailyData(@RequestBody @Valid StockDailyVO vo) {
+    @PostMapping("/daily")
+    public RestBean<StockRealListVO> getStockDailyData(@RequestBody @Valid StockDailyVO vo) {
         LocalDate date = vo.getDate();
         LocalDate date1 = date.plusMonths(-4);
         List<StockRealVO> stockDailyHistory = stockDailyService.getStockDailyHistory(vo.getTsCode(), date1);
+        StockRealListVO stockRealListVO = new StockRealListVO();
+        stockRealListVO.setList(stockDailyHistory);
         return stockDailyHistory != null && !stockDailyHistory.isEmpty() ?
-                RestBean.success(stockDailyHistory):RestBean.failure(400, "暂无数据");
+                RestBean.success(stockRealListVO):RestBean.failure(400, "暂无数据");
     }
 
     // 获取某个股票的所有日线数据
     @GetMapping("/daily-all")
-    public RestBean<List<StockRealVO>> getAllStockDailyData(@RequestParam @Valid String tsCode) {
+    public RestBean<StockRealListVO> getAllStockDailyData(@RequestParam @Valid String tsCode) {
 
         List<StockRealVO> stockDailyHistory = stockDailyService.getStockDailyHistory(tsCode, LocalDate.parse("2010-01-01"));
+        StockRealListVO stockRealListVO = new StockRealListVO();
+        stockRealListVO.setList(stockDailyHistory);
         return stockDailyHistory != null && !stockDailyHistory.isEmpty() ?
-                RestBean.success(stockDailyHistory):RestBean.failure(400, "暂无数据");
+                RestBean.success(stockRealListVO):RestBean.failure(400, "暂无数据");
     }
 
     @GetMapping("/query")
@@ -80,10 +82,8 @@ public class StockController {
     }
 
     @GetMapping("/favorite")
-    public RestBean<FavoriteVO> queryFavorite(@RequestParam @Valid int uid,
-                                              @RequestAttribute("id") int id) {
-        if (uid != id) return RestBean.failure(400, "请求参数有误");
-        return RestBean.success(stockService.queryFavoriteByUid(uid));
+    public RestBean<FavoriteVO> queryFavorite(@RequestAttribute("id") int id) {
+        return RestBean.success(stockService.queryFavoriteByUid(id));
     }
 
     @PostMapping("/favorite")
@@ -97,6 +97,13 @@ public class StockController {
         favorite.setFavoriteList(favoriteList);
         if (stockService.updateFavorite(favorite)) return RestBean.success();
         else return RestBean.failure(400, "更新失败");
+    }
+
+    @PutMapping("/favorite")
+    public RestBean<String> addFavorite(@RequestHeader("Authorization") String token,
+                                         @RequestParam @Valid String tsCode) {
+        boolean flag = stockService.addFavorite(tsCode, token);
+        return flag ? RestBean.success() : RestBean.failure(400, "请求失败");
     }
 
     @GetMapping("/register")
