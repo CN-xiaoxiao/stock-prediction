@@ -7,7 +7,7 @@ import java.util.List;
 
 /**
  * @ClassName StockRealListVO
- * @Description TODO
+ * @Description 股票每日交易信息包装类
  * @Author xiaoxiao
  * @Version 1.0
  */

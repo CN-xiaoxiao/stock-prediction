@@ -112,7 +112,7 @@ const copyIp = ip => copy(ip).then(() => ElMessage.success('成功复制股票�
             <span>{{recentTrulyData.value.tradeDate}}</span>
           </div>
           <div>
-            <span>开盘价/收盘价</span>
+            <span>开盘价/收盘价(元)</span>
             <span>{{recentTrulyData.value.open}} / {{recentTrulyData.value.close}}</span>
           </div>
           <div>
@@ -128,7 +128,7 @@ const copyIp = ip => copy(ip).then(() => ElMessage.success('成功复制股票�
             <span>{{recentTrulyData.value.pctChg+`%`}}</span>
           </div>
           <div>
-            <span>最高价/最低价</span>
+            <span>最高价/最低价(元)</span>
             <span>{{recentTrulyData.value.high+` / `+recentTrulyData.value.low}}</span>
           </div>
           <div>

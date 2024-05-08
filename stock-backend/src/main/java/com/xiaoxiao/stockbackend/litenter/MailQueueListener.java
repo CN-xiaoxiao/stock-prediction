@@ -50,11 +50,15 @@ public class MailQueueListener {
                             email);
             case "reset" ->
                     createMessage("您的密码重置邮件",
-                            "你好，您正在执行重置密码操作，验证码: "+code+"，有效时间3分钟，如非本人操作，请无视。",
+                            "你好，您正在执行重置密码操作，验证码为: "+code+"，有效时间3分钟，如非本人操作，请无视。",
                             email);
             case "resetSuccess" ->
                     createMessage("修改密码成功！",
                             "尊敬的用户: " + account.getUsername() + "，您好！您的密码已重置，请妥善保管您的密码。",
+                            email);
+            case "modify" ->
+                    createMessage("您的邮箱修改邮件",
+                            "你好，您正在执行邮箱修改操作，验证码为: " + code + "，有效时间3分钟，如非本人操作，请无视。",
                             email);
             default -> null;
         };

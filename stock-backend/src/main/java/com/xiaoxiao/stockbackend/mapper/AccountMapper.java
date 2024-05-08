@@ -21,4 +21,10 @@ public interface AccountMapper {
 
     @Select("select * from account where id = #{uid}")
     Account findAccountByUid(int uid);
+
+    @Update("update account set password = #{newPassword} where id = #{id}")
+    boolean updatePassword(int id, String newPassword);
+
+    @Update("update account set email = #{email} where id = #{id}")
+    boolean updateEmailById(int id, String email);
 }
