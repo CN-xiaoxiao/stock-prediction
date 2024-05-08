@@ -6,7 +6,7 @@ import org.hibernate.validator.constraints.Length;
 
 /**
  * @ClassName ModifyEmailVO
- * @Description TODO
+ * @Description 封装修改邮件的参数
  * @Author xiaoxiao
  * @Version 1.0
  */

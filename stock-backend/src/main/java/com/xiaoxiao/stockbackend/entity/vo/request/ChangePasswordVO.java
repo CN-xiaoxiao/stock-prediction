@@ -5,7 +5,7 @@ import org.hibernate.validator.constraints.Length;
 
 /**
  * @ClassName ChangePasswordVO
- * @Description TODO
+ * @Description 封装修改密码的参数
  * @Author xiaoxiao
  * @Version 1.0
  */

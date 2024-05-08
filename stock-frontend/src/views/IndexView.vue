@@ -1,21 +1,23 @@
 <script setup>
 import {logout} from "@/net";
 import router from "@/router/index.js";
-import {Back, Moon, Star, Sunny} from "@element-plus/icons-vue";
+import {Back, Moon, Search, Star, Sunny} from "@element-plus/icons-vue";
 import {useDark} from "@vueuse/core";
-import { ref } from "vue"
+import {reactive, ref} from "vue"
 import TabItem from "@/components/TabItem.vue";
 import {useRoute} from "vue-router";
 import {useStore} from "@/store";
+import {get, post} from "@/net/index.js"
+import StockDatils from "@/components/StockDatils.vue";
+import StockSearch from "@/components/stockSearch.vue";
 
 const store = useStore()
 const dark = ref(useDark())
 
 const tabs = [
   {id: 1, name: '首页', route: 'main-main'},
-  {id: 2, name: '搜索', route: 'main-search'},
-  {id: 3, name: '收藏', route: 'main-favorite'},
-  {id: 4, name: '安全', route: 'main-security'}
+  {id: 2, name: '收藏', route: 'main-favorite'},
+  {id: 3, name: '安全', route: 'main-security'}
 ]
 
 const route = useRoute()
@@ -27,6 +29,11 @@ const defaultIndex = ()=>{
   return 1
 }
 
+const searchList = reactive({
+  total: 0,
+  list: []
+})
+
 const tab = ref(defaultIndex())
 
 function userLogout() {
@@ -35,7 +42,36 @@ function userLogout() {
 
 function changePage(item) {
   tab.value = item.id
+  searchList.total = 0
+  searchList.list = []
   router.push({name: item.route})
+}
+const input = reactive({
+  search: ""
+})
+
+const detail = reactive({
+  show: false
+})
+
+const page = reactive({
+  pageNum: 1,
+  pageSize: 20
+})
+
+function search() {
+  if (input.search !== "") {
+    get(`/api/stock/query?pageNum=${page.pageNum}&pageSize=${page.pageSize}&tsCode=${input.search}`, (data) => {
+      searchList.total = data.total
+      searchList.list = data.list
+    })
+    detail.show = true
+  }
+}
+
+function handleClose() {
+  searchList.total = 0
+  searchList.list = []
 }
 
 </script>
@@ -44,6 +80,18 @@ function changePage(item) {
   <el-container class="main-container">
     <el-header class="main-header">
       <el-image style="height: 30px" src="https://element-plus.org/images/element-plus-logo.svg"/>
+      <div style="margin-left:200px;margin-right:auto;">
+        <el-input
+            v-model="input.search"
+            size="large"
+            style="width: 300px"
+            :prefix-icon="Search"
+            placeholder="请输入股票代码或股票名称"/>
+      </div>
+      <div>
+        <el-button size="large" style="margin-left: 5px"
+                   @click="search()">搜索</el-button>
+      </div>
       <div class="tabs">
         <tab-item v-for="item in  tabs" :name="item.name"
                   :active="item.id === tab" @click="changePage(item)"/>
@@ -58,7 +106,6 @@ function changePage(item) {
                     {{store.user.username}}
           </div>
           <div style="font-size: 13px;color: grey">{{store.user.email}}</div>
-
         </div>
         <el-dropdown>
           <el-avatar class="avatar"
@@ -85,6 +132,10 @@ function changePage(item) {
           <component :is="Component"/>
         </transition>
       </router-view>
+      <el-drawer size="600" direction="btt" @close="handleClose()"
+                 :with-header="false" :show-close="false" v-model="detail.show" v-if="searchList.list.length">
+        <stock-search :stock-list="searchList.list"/>
+      </el-drawer>
     </el-main>
   </el-container>
 </template>
@@ -119,5 +170,14 @@ function changePage(item) {
 
 .dark .main-container .main-content {
   background-color: #232323;
+}
+:deep(.el-drawer) {
+  padding: 10px;
+  height: calc(100% - 20px);
+  border-radius: 10px;
+}
+
+:deep(.el-drawer__body) {
+  padding: 0;
 }
 </style>

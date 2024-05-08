@@ -185,12 +185,6 @@ function viewDetails(row) {
   .main-table {
     width: 70vw;
   }
-
-  .main-search {
-    width: 300px;
-    margin-left: 10px;
-    background-color: pink;
-  }
 }
 
 </style>

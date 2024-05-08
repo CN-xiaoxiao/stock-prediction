@@ -2,6 +2,7 @@
 import * as echarts from "echarts"
 import {onMounted, watch} from "vue";
 import {defaultOption, doubleSeries, singleSeries} from "@/echarts";
+import {onUnmounted} from "@vue/runtime-core";
 
 const charts = []
 
@@ -69,6 +70,19 @@ function initCharts() {
   }
 }
 
+function destroy() {
+  const chartList = [
+    document.getElementById('open'),
+    document.getElementById('highAndLow'),
+    document.getElementById('vlo'),
+    document.getElementById('amount')
+  ]
+  for (let i = 0; i < chartList.length; i++) {
+    const chart = chartList[i]
+    echarts.getInstanceByDom(chart).dispose()
+  }
+}
+
 onMounted(() => {
   initCharts()
   watch(() => props.data, list => {
@@ -77,6 +91,11 @@ onMounted(() => {
     updateVlo(list)
     updateAmount(list)
   }, {immediate: true, deep: true})
+})
+
+onUnmounted(()=>{
+  console.log("123")
+  destroy()
 })
 </script>
 
