@@ -4,9 +4,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.xiaoxiao.stockbackend.entity.dto.StockMarketDTO;
 import com.xiaoxiao.stockbackend.entity.dto.StockRealDTO;
 import com.xiaoxiao.stockbackend.entity.vo.request.StockApiVO;
-import com.xiaoxiao.stockbackend.entity.vo.response.StockApiResponse;
-import com.xiaoxiao.stockbackend.entity.vo.response.StockHistoryVO;
-import com.xiaoxiao.stockbackend.entity.vo.response.StockRealVO;
+import com.xiaoxiao.stockbackend.entity.vo.response.*;
 import com.xiaoxiao.stockbackend.mapper.StockBasicsMapper;
 import com.xiaoxiao.stockbackend.service.StockDailyService;
 import com.xiaoxiao.stockbackend.service.StockService;
@@ -16,6 +14,7 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -23,6 +22,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -44,6 +44,8 @@ public class StockDailyServiceImpl implements StockDailyService {
     InfluxDBUtils influxDBUtils;
     @Resource
     NetUtils netUtils;
+    @Value("${spring.influx.measurements.real}")
+    String measurement;
 
     /**
      * 获取股票编号为 tsCode的股票从 date 到 now() 时间的所有交易记录
@@ -61,7 +63,7 @@ public class StockDailyServiceImpl implements StockDailyService {
         long diffDay = getDifferDayTime(date, LocalDate.now());
         String time = diffDay -1 + "d";
 
-        StockHistoryVO stockHistoryVO = influxDBUtils.readRealData(sid, time, null);
+        StockHistoryVO stockHistoryVO = influxDBUtils.readData(sid, measurement, time, null);
         return getStockRealVOS(result, stockHistoryVO);
     }
 
@@ -81,7 +83,7 @@ public class StockDailyServiceImpl implements StockDailyService {
 
         startDate = startDate.plusDays(-1);
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        StockHistoryVO stockHistoryVO = influxDBUtils.readRealData(sid, startDate.format(dtf), endDate.format(dtf));
+        StockHistoryVO stockHistoryVO = influxDBUtils.readData(sid, measurement, startDate.format(dtf), endDate.format(dtf));
         return getStockRealVOS(result, stockHistoryVO);
     }
 
@@ -126,7 +128,7 @@ public class StockDailyServiceImpl implements StockDailyService {
         LocalDate endDate = LocalDate.now();
         LocalDate startDate = endDate.plusMonths(-3);
         // 获取三个月的数据
-        StockHistoryVO stockHistoryVO = influxDBUtils.readRealData(sid, dtf.format(startDate), dtf.format(endDate));
+        StockHistoryVO stockHistoryVO = influxDBUtils.readData(sid, measurement, dtf.format(startDate), dtf.format(endDate));
         LocalDate yesterday = endDate.plusDays(-1);
         // 历史数据为空
         if (stockHistoryVO == null || stockHistoryVO.getList().isEmpty()) { // 拉取2010年1月1号到今天的数据
@@ -170,6 +172,23 @@ public class StockDailyServiceImpl implements StockDailyService {
                 updateStockDaily(params);
             }
         }
+    }
+
+    @Override
+    public List<StockRealListVO> getStockDailyHistoryForFavorite(int id) {
+        FavoriteVO favoriteVO = stockService.queryFavoriteByUid(id);
+        List<String> favoriteList = favoriteVO.getFavoriteList();
+        LocalDate date = LocalDate.now().plusMonths(-4);
+
+        List<StockRealListVO> result = new ArrayList<>();
+        for (String s : favoriteList) {
+            List<StockRealVO> dailyStockData = this.getStockDailyHistory(s, date);
+
+            StockRealListVO stockRealListVO = new StockRealListVO();
+            stockRealListVO.setList(dailyStockData);
+            result.add(stockRealListVO);
+        }
+        return result;
     }
 
     /**

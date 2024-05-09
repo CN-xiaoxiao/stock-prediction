@@ -74,6 +74,17 @@ public class StockController {
                 RestBean.success(stockRealListVO):RestBean.failure(400, "暂无数据");
     }
 
+    /**
+     * 查询收藏夹里所有股票的日线信息
+     * @param id
+     * @return
+     */
+    @GetMapping("/daily-favorite")
+    public RestBean<List<StockRealListVO>> getStockDailyForFavorite(@RequestAttribute("id") int id) {
+        List<StockRealListVO> list = stockDailyService.getStockDailyHistoryForFavorite(id);
+        return RestBean.success(list);
+    }
+
     @GetMapping("/query")
     public RestBean<PageInfo<StockBasicsVO>> queryStockBasics(@RequestParam @Valid int pageNum,
                                                               @RequestParam @Valid int pageSize,
@@ -84,6 +95,13 @@ public class StockController {
     @GetMapping("/favorite")
     public RestBean<FavoriteVO> queryFavorite(@RequestAttribute("id") int id) {
         return RestBean.success(stockService.queryFavoriteByUid(id));
+    }
+
+    @GetMapping("/favoriteList")
+    public RestBean<List<StockBasicsVO>> queryFavoriteList(@RequestAttribute("id") int id) {
+        List<StockBasicsVO> list = stockService.getStockBasicsListForFavorite(id);
+        return list == null || list.isEmpty() ? RestBean.failure(401, "请求参数有误")
+                : RestBean.success(list);
     }
 
     @PostMapping("/favorite")
@@ -111,10 +129,31 @@ public class StockController {
         return RestBean.success(stockPredictService.registerToken());
     }
 
+    /**
+     * 预测一条股票信息（预测明天）
+     * @param tsCode ts股票代码
+     * @return 预测的结果
+     */
     @GetMapping("/predict")
-    public RestBean<List<StockPredictVO>> predict(@RequestParam @Valid String tsCode) {
+    public RestBean<List<StockPredictVO>> doPredict(@RequestParam @Valid String tsCode) {
         List<StockPredictVO> predict = stockPredictService.predict(tsCode);
         if (predict != null && !predict.isEmpty()) return RestBean.success(predict);
         else return RestBean.failure(400, "服务器内部错误");
+    }
+
+    /**
+     * 获取四个月的股票预测信息
+     * @param tsCode
+     * @return
+     */
+    @GetMapping("/predict-list")
+    public RestBean<List<StockPreVO>> predictList(@RequestParam @Valid String tsCode) {
+        LocalDate date = LocalDate.now();
+        LocalDate startDate = date.plusMonths(-4);
+        LocalDate endDate = date.plusDays(1);
+
+        List<StockPreVO> list = stockPredictService.getPredictList(tsCode, startDate, endDate);
+
+        return RestBean.success(list);
     }
 }

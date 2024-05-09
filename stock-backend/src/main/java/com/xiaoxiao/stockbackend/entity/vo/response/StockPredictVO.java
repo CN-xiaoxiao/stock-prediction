@@ -4,7 +4,7 @@ import lombok.Data;
 
 /**
  * @ClassName StockPredictVO
- * @Description 股票预测实体类
+ * @Description 股票预测实体类(数据处理服务器端响应类)
  * @Author xiaoxiao
  * @Version 1.0
  */

@@ -328,6 +328,21 @@ public class StockServiceImpl implements StockService {
         return stockFavoriteMapper.updateFavorite(favorite);
     }
 
+    @Override
+    public List<StockBasicsVO> getStockBasicsListForFavorite(int id) {
+        FavoriteVO favoriteVO = this.queryFavoriteByUid(id);
+        List<String> favoriteList = favoriteVO.getFavoriteList();
+
+        List<StockBasicsVO> result = new ArrayList<>(favoriteList.size());
+        for (String s : favoriteList) {
+            StockBasicsDTO dto = stockBasicsMapper.selectStockBasicsByTsCode(s);
+            StockBasicsVO stockBasicsVO = new StockBasicsVO();
+            BeanUtils.copyProperties(dto, stockBasicsVO);
+            result.add(stockBasicsVO);
+        }
+        return result;
+    }
+
     /**
      * 判断是否操作 uid 的账户
      * @param uid 用户 id

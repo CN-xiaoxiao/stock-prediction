@@ -34,9 +34,9 @@ public class DataTreatingController {
 
     @GetMapping("/trainingList")
     public RestBean<String> trainingList() {
-//        List<String> strings = stockPredictService.trainingList();
-        List<String> strings = new ArrayList<>();
-        strings.add("000001.SZ");
+        List<String> strings = stockPredictService.trainingList();
+//        List<String> strings = new ArrayList<>();
+//        strings.add("000001.SZ");
         return RestBean.success(JSONObject.toJSONString(strings));
     }
 

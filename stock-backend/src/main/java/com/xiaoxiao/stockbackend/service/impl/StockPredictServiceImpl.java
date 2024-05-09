@@ -4,23 +4,24 @@ import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.xiaoxiao.stockbackend.entity.dto.Favorite;
 import com.xiaoxiao.stockbackend.entity.dto.TreatingTokenDTO;
-import com.xiaoxiao.stockbackend.entity.vo.response.DataTreatingResponse;
-import com.xiaoxiao.stockbackend.entity.vo.response.StockHistoryVO;
-import com.xiaoxiao.stockbackend.entity.vo.response.StockPredictVO;
-import com.xiaoxiao.stockbackend.entity.vo.response.StockRealVO;
+import com.xiaoxiao.stockbackend.entity.vo.response.*;
 import com.xiaoxiao.stockbackend.mapper.StockFavoriteMapper;
 import com.xiaoxiao.stockbackend.mapper.TreatingTokenMapper;
 import com.xiaoxiao.stockbackend.service.StockDailyService;
 import com.xiaoxiao.stockbackend.service.StockPredictService;
+import com.xiaoxiao.stockbackend.service.StockService;
+import com.xiaoxiao.stockbackend.utils.InfluxDBUtils;
 import com.xiaoxiao.stockbackend.utils.net.DataTreatingUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
 import java.security.SecureRandom;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,13 +35,20 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class StockPredictServiceImpl implements StockPredictService {
     @Resource
+    StockDailyService stockDailyService;
+    @Resource
+    StockService stockService;
+    @Resource
     TreatingTokenMapper treatingTokenMapper;
     @Resource
     StockFavoriteMapper stockFavoriteMapper;
     @Resource
     DataTreatingUtils dataTreatingUtils;
     @Resource
-    StockDailyService stockDailyService;
+    InfluxDBUtils influxDBUtils;
+
+    @Value("${spring.influx.measurements.predict}")
+    String measurements;
 
     private String registerToken = this.generateNewToken();
     private final Map<String, TreatingTokenDTO> treatingTokenCache = new ConcurrentHashMap<>();
@@ -101,7 +109,7 @@ public class StockPredictServiceImpl implements StockPredictService {
     }
 
     /**
-     * 获取用户收藏夹中的股票
+     * 获取所有用户收藏夹中的股票
      * @return 股票集合
      */
     @Override
@@ -110,7 +118,9 @@ public class StockPredictServiceImpl implements StockPredictService {
         Set<String> set = new HashSet<>();
         for (Favorite favorite : list) {
             String favoriteList = favorite.getFavoriteList();
-            List<String> strings = JSONArray.parseArray(favoriteList, String.class);
+            List<String> strings;
+            String[] split = favoriteList.split(",");//TODO .JSONException
+            strings = Arrays.asList(split);
             set.addAll(strings);
         }
         return new ArrayList<>(set);
@@ -145,6 +155,32 @@ public class StockPredictServiceImpl implements StockPredictService {
         List<StockRealVO> stockRealDTOS = stockDailyService.getStockDailyHistory(tsCode, date);
         stockRealDTOS = stockRealDTOS.subList(stockRealDTOS.size() - 22, stockRealDTOS.size());
         return this.getPredictData(stockRealDTOS, false);
+    }
+
+    /**
+     * 从数据库中获取预测的股票数据
+     * @param tsCode ts股票代码
+     * @param start 开始时间
+     * @param end 结束时间
+     * @return 预测数据集合
+     */
+    @Override
+    public List<StockPreVO> getPredictList(String tsCode, LocalDate start, LocalDate end) {
+        List<StockPreVO> stockPreVOList = new ArrayList<>();
+
+        long sid = stockService.querySidByTsCode(tsCode);
+        if (sid <= 0) return null;
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        StockHistoryVO stockHistoryVO = influxDBUtils.
+                readData(sid, measurements, dtf.format(start), dtf.format(end));
+
+        List<JSONObject> list = stockHistoryVO.getList();
+        for (JSONObject jsonObject : list) {
+            StockPreVO stockPreVO = JSONObject.parseObject(jsonObject.toJSONString(), StockPreVO.class);
+            stockPreVOList.add(stockPreVO);
+        }
+
+        return stockPreVOList;
     }
 
     /**

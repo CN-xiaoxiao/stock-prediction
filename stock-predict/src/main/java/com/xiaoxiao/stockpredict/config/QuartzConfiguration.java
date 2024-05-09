@@ -15,6 +15,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class QuartzConfiguration {
 
+    /**
+     * 股票训练任务
+     * @return
+     */
     @Bean("stockTrainJobDetail")
     public JobDetail stockTrainJobDetailBean() {
         return JobBuilder.newJob(StockTrainJobBean.class)

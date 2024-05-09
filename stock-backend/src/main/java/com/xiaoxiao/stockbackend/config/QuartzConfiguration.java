@@ -68,6 +68,14 @@ public class QuartzConfiguration {
                 .build();
     }
 
+    @Bean("predictStockJobDetail")
+    public JobDetail predictStockJobDetailBean() {
+        return JobBuilder.newJob(StockPredictJobBean.class)
+                .withIdentity("predict-stock-task")
+                .storeDurably()
+                .build();
+    }
+
     @Bean
     public Trigger stockBasicsCronTriggerFactoryBean(@Qualifier("stockBasicsJobDetail") JobDetail detail) {
         // 每天22点执行一次 ‘0 0 22 1/1 * ? *’
@@ -119,6 +127,17 @@ public class QuartzConfiguration {
         return TriggerBuilder.newTrigger()
                 .forJob(detail)
                 .withIdentity("predict-stock-hot-trigger")
+                .withSchedule(cron)
+                .build();
+    }
+
+    @Bean
+    public Trigger predictStockCronTrigger(@Qualifier("predictStockJobDetail") JobDetail detail) {
+        // 每天早上4点30分开始执行 '0 30 4 * * ? *'
+        CronScheduleBuilder cron = CronScheduleBuilder.cronSchedule("0 24 10 * * ? *");
+        return TriggerBuilder.newTrigger()
+                .forJob(detail)
+                .withIdentity("predict-stock-trigger")
                 .withSchedule(cron)
                 .build();
     }

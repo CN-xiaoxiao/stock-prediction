@@ -42,7 +42,13 @@ public class HotStockJobBean extends QuartzJobBean {
                 for (int i = 0; i < hotStockVOList.size(); i++) {
                     HotStockVO hotStockVO = hotStockVOList.get(i);
                     String tsCode = hotStockVO.getTsCode();
+                    log.info("正在添加股票代码为[{}]的股票到热门榜单", tsCode);
                     List<StockBasicsDTO> list = stockService.getStockBasicsDTO(tsCode);
+
+                    if (list == null || list.isEmpty()) {
+                        log.warn("本地没有股票代码为[{}]的股票信息", tsCode);
+                        continue;
+                    }
                     StockBasicsDTO stockBasicsDTO = list.get(0);
                     if (stockBasicsDTO != null) {
                         String jsonString = JSONObject.toJSONString(stockBasicsDTO);
