@@ -29,4 +29,12 @@ public interface StockService {
     boolean addFavorite(String tsCode, String token);
 
     List<StockBasicsVO> getStockBasicsListForFavorite(int id);
+
+    /**
+     * 删除股票收藏夹内的股票
+     * @param tsCode 待删除的股票代码
+     * @param token
+     * @return
+     */
+    boolean deleteFavorite(String tsCode, String token);
 }

@@ -124,6 +124,14 @@ public class StockController {
         return flag ? RestBean.success() : RestBean.failure(400, "请求失败");
     }
 
+    @GetMapping("/favorite-delete")
+    public RestBean<String> deleteFavorite(@RequestHeader("Authorization") String token,
+                                           @RequestParam @Valid String tsCode) {
+        boolean flag = stockService.deleteFavorite(tsCode, token);
+
+        return flag ? RestBean.success() : RestBean.failure(401, "请求失败");
+    }
+
     @GetMapping("/register")
     public RestBean<String> registerTreating() {
         return RestBean.success(stockPredictService.registerToken());
@@ -154,6 +162,6 @@ public class StockController {
 
         List<StockPreVO> list = stockPredictService.getPredictList(tsCode, startDate, endDate);
 
-        return RestBean.success(list);
+        return list == null || list.isEmpty() ? RestBean.failure(401, "暂无数据") : RestBean.success(list);
     }
 }

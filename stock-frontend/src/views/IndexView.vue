@@ -40,8 +40,17 @@ function userLogout() {
   logout(() => router.push('/'))
 }
 
+function pushToFavorite() {
+  tab.value = 2
+  input.search = ""
+  searchList.total = 0
+  searchList.list = []
+  router.push('/favorite')
+}
+
 function changePage(item) {
   tab.value = item.id
+  input.search = ""
   searchList.total = 0
   searchList.list = []
   router.push({name: item.route})
@@ -112,7 +121,7 @@ function handleClose() {
                      src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"/>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item >
+              <el-dropdown-item @click="pushToFavorite">
                 <el-icon><Star/></el-icon>
                 我的收藏
               </el-dropdown-item>

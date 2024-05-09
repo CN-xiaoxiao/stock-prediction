@@ -135,7 +135,7 @@ function viewDetails(row) {
               <el-button link type="primary" size="small" @click.stop="viewDetails(scope.row)">
                 详情
               </el-button>
-              <el-button v-if="!isFavorite(scope.row)" link type="warning" size="small" @click="addFavorite(scope.row)">
+              <el-button v-if="!isFavorite(scope.row)" link type="warning" size="small" @click.stop="addFavorite(scope.row)">
                 收藏</el-button>
               <el-button v-else disabled link  size="small">已收藏</el-button>
             </template>

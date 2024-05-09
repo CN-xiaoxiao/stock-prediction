@@ -344,6 +344,33 @@ public class StockServiceImpl implements StockService {
     }
 
     /**
+     * 删除股票收藏夹内的股票
+     *
+     * @param tsCode 待删除的股票代码
+     * @param token
+     * @return
+     */
+    @Override
+    public boolean deleteFavorite(String tsCode, String token) {
+        int id = jwtUtils.getId(token);
+        if (!isAccount(id)) return false;
+        Favorite favorite = stockFavoriteMapper.queryFavoriteByUserID(id);
+        if (favorite == null) return false;
+
+        String favoriteList = favorite.getFavoriteList();
+        String[] split = favoriteList.split(",");
+
+        StringBuilder sb = new StringBuilder();
+        for (String s : split) {
+            if (s.equals(tsCode)) continue;
+            sb.append(s).append(",");
+        }
+        sb.deleteCharAt(sb.length() - 1);
+        favorite.setFavoriteList(sb.toString());
+        return stockFavoriteMapper.updateFavorite(favorite);
+    }
+
+    /**
      * 判断是否操作 uid 的账户
      * @param uid 用户 id
      * @return true: 存在；false: 不存在

@@ -119,7 +119,7 @@ public class StockPredictServiceImpl implements StockPredictService {
         for (Favorite favorite : list) {
             String favoriteList = favorite.getFavoriteList();
             List<String> strings;
-            String[] split = favoriteList.split(",");//TODO .JSONException
+            String[] split = favoriteList.split(",");
             strings = Arrays.asList(split);
             set.addAll(strings);
         }
