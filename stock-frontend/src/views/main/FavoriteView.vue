@@ -4,7 +4,6 @@ import StockPreviewCard from "@/components/StockPreviewCard.vue";
 import {computed, reactive, ref} from "vue";
 import {useRoute} from "vue-router";
 import {get} from "@/net/index.js";
-import StockDatils from "@/components/StockDatils.vue";
 import StockDatilsAndPredict from "@/components/StockDatilsAndPredict.vue";
 
 const favorite = ref([])
@@ -14,7 +13,6 @@ function updateList() {
   if (route.name === 'main-favorite') {
     get('/api/stock/favoriteList', data => {
       favorite.value = data
-      console.log(favorite.value)
     })
   }
 }
@@ -49,7 +47,7 @@ function closeHandel() {
     <div style="display: flex;justify-content: space-between;align-items: end">
       <div>
         <div class="title"><i class="fa-solid fa-star"></i> 个人收藏夹</div>
-        <div class="desc">在这里选择已收藏的股票后可查看预测分析结果</div>
+        <div class="desc">在这里选择已收藏的股票后可查看预测分析结果，首次添加最迟需等待一天可得到预测结果。</div>
       </div>
     </div>
     <el-divider style="margin: 10px 0"/>

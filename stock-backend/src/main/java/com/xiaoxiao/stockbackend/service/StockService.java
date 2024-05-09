@@ -37,4 +37,6 @@ public interface StockService {
      * @return
      */
     boolean deleteFavorite(String tsCode, String token);
+
+    PageInfo<StockBasicsVO> getStockBasicsVOByTsCodeOrStockName(int pageNum, int pageSize, String query);
 }

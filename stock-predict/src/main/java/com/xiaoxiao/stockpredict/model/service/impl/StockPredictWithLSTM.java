@@ -79,7 +79,7 @@ public class StockPredictWithLSTM implements IModelService {
     private List<StockTestPrice> train(List<StockData> dataList, String stockCode) throws IOException {
         int batchSize = 64; // 一次训练选取的样本个数
         double splitRatio = 0.9;    // 学习率
-        int epochs = 10;   // 训练次数 TODO 修改为100
+        int epochs = 100;   // 训练次数 TODO 修改为100
         String file = "";
 
         log.info("Create dataSet iterator...");

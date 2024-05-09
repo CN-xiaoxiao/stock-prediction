@@ -1,4 +1,4 @@
-package com.xiaoxiao.stockpredict.model.predict;
+package com.xiaoxiao.stockpredict.model.predictDemo;
 
 
 import com.alibaba.fastjson2.JSONObject;

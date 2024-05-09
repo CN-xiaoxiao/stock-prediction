@@ -93,10 +93,6 @@ onMounted(() => {
   }, {immediate: true, deep: true})
 })
 
-onUnmounted(()=>{
-  console.log("123")
-  destroy()
-})
 </script>
 
 <template>

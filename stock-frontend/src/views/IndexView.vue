@@ -70,7 +70,7 @@ const page = reactive({
 
 function search() {
   if (input.search !== "") {
-    get(`/api/stock/query?pageNum=${page.pageNum}&pageSize=${page.pageSize}&tsCode=${input.search}`, (data) => {
+    get(`/api/stock/query?pageNum=${page.pageNum}&pageSize=${page.pageSize}&query=${input.search}`, (data) => {
       searchList.total = data.total
       searchList.list = data.list
     })

@@ -88,8 +88,8 @@ public class StockController {
     @GetMapping("/query")
     public RestBean<PageInfo<StockBasicsVO>> queryStockBasics(@RequestParam @Valid int pageNum,
                                                               @RequestParam @Valid int pageSize,
-                                                              @RequestParam String tsCode) {
-        return RestBean.success(stockService.getStockBasicsVO(pageNum, pageSize, tsCode));
+                                                              @RequestParam String query) {
+        return RestBean.success(stockService.getStockBasicsVOByTsCodeOrStockName(pageNum, pageSize, query));
     }
 
     @GetMapping("/favorite")

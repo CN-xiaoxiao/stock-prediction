@@ -370,6 +370,20 @@ public class StockServiceImpl implements StockService {
         return stockFavoriteMapper.updateFavorite(favorite);
     }
 
+    @Override
+    public PageInfo<StockBasicsVO> getStockBasicsVOByTsCodeOrStockName(int pageNum, int pageSize, String query) {
+        PageHelper.startPage(pageNum, pageSize);
+        List<StockBasicsDTO> list = stockBasicsMapper.fuzzyQueryStockBasicsDTOByTsCodeOrStockName(query);
+        if (list == null || list.isEmpty()) return null;
+        List<StockBasicsVO> vos = new ArrayList<>();
+        for (StockBasicsDTO dto : list) {
+            StockBasicsVO vo = new StockBasicsVO();
+            BeanUtils.copyProperties(dto, vo);
+            vos.add(vo);
+        }
+        return new PageInfo<>(vos);
+    }
+
     /**
      * 判断是否操作 uid 的账户
      * @param uid 用户 id
