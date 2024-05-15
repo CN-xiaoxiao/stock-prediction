@@ -88,7 +88,7 @@ function handleClose() {
 <template>
   <el-container class="main-container">
     <el-header class="main-header">
-      <el-image style="height: 30px" src="https://element-plus.org/images/element-plus-logo.svg"/>
+      <el-image style="height: 30px" src="./src/image/logo.png"/>
       <div style="margin-left:200px;margin-right:auto;">
         <el-input
             v-model="input.search"

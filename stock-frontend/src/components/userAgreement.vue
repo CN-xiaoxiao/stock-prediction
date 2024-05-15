@@ -87,7 +87,7 @@ const close = () => {
   margin-top: 20px;
   max-height: 300px;
   overflow-y: auto;
-  background-color: #f5f7fa;
+  background-color: var(--el-color-info-light-9);
   padding: 0 20px 20px 20px;
   border-radius: 4px;
   font-size: 14px;
