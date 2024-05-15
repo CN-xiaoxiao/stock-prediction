@@ -49,6 +49,21 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
+     * 保存用户同意了协议
+     * @param id 用户id
+     * @return
+     */
+    @Override
+    public boolean updateUserAgreement(int id) {
+        return accountMapper.updateUserAgreement(id);
+    }
+
+    @Override
+    public int isUserAgreed(int id) {
+        return accountMapper.findAgreedByUid(id);
+    }
+
+    /**
      * 获取Redis中存储的邮件验证码
      * @param email 电子邮件
      * @return 验证码

@@ -18,4 +18,5 @@ public class Account implements BaseData {
     private String image;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createtime;
+    private Integer agreed;
 }

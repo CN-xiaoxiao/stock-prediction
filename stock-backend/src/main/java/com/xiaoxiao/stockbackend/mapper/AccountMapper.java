@@ -27,4 +27,10 @@ public interface AccountMapper {
 
     @Update("update account set email = #{email} where id = #{id}")
     boolean updateEmailById(int id, String email);
+
+    @Update("update account set agreed = 1 where id = #{id}")
+    boolean updateUserAgreement(int id);
+
+    @Select("select agreed from account where id = #{id}")
+    int findAgreedByUid(int id);
 }

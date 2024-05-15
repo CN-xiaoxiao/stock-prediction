@@ -91,7 +91,7 @@ public class AuthorizeServiceImpl implements AuthorizeService {
         if (this.existsAccountByName(username)) return "该用户名已被使用，请使用其他用户名";
         String password = passwordEncoder.encode(vo.getPassword());
         Account account = new Account(null, username, password, email,
-                "user", null, new Date());
+                "user", null, new Date(), 0);
         boolean flag = accountMapper.addAccount(account);
         if (flag) {
             this.deleteEmailVerifyCode(email);

@@ -40,4 +40,21 @@ public class UserController {
             return RestBean.failure(401, result);
         }
     }
+
+    @GetMapping("/agree-agreement")
+    public RestBean<Void> updateUserAgreement(@RequestParam @Valid boolean isAgreed,
+                                              @RequestAttribute("id") int id) {
+        if (isAgreed) {
+            boolean flag = userService.updateUserAgreement(id);
+            return flag ? RestBean.success() : RestBean.failure(500, "服务器内部错误");
+        }
+        return RestBean.failure(401, "请求参数有误");
+    }
+
+    @GetMapping("/agree")
+    public RestBean<Boolean> findUserAgreement(@RequestAttribute("id") int id) {
+        int result = userService.isUserAgreed(id);
+        boolean isAgreed = result == 1;
+        return RestBean.success(isAgreed);
+    }
 }
