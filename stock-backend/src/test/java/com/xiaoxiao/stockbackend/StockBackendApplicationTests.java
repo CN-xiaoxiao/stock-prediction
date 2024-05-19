@@ -3,9 +3,11 @@ package com.xiaoxiao.stockbackend;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.csvreader.CsvWriter;
+import com.influxdb.client.domain.DeletePredicateRequest;
 import com.xiaoxiao.stockbackend.entity.dto.Favorite;
 import com.xiaoxiao.stockbackend.entity.dto.StockBasicsDTO;
 import com.xiaoxiao.stockbackend.entity.dto.StockMarketDTO;
+import com.xiaoxiao.stockbackend.entity.dto.StockPredictDTO;
 import com.xiaoxiao.stockbackend.entity.vo.request.StockApiVO;
 import com.xiaoxiao.stockbackend.entity.vo.response.*;
 import com.xiaoxiao.stockbackend.mapper.StockBasicsMapper;
@@ -33,8 +35,8 @@ import java.net.http.HttpResponse;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
-import java.time.LocalDate;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Slf4j
@@ -425,5 +427,68 @@ class StockBackendApplicationTests {
 
         List<String> strings = JSONArray.parseArray(jsonString, String.class);
         System.out.println("strings = " + strings);
+    }
+
+    @Test
+    public void testStockPredictMore() {
+        String tsCode = "000001.SZ";
+        LocalDate date =  LocalDate.now().plusMonths(-3);
+        List<StockRealVO> stockRealDTOS = stockDailyService.getStockDailyHistory(tsCode, date);
+        stockRealDTOS = stockRealDTOS.subList(stockRealDTOS.size() - 22 - 30, stockRealDTOS.size());
+
+        List<StockPredictVO> predictData = stockPredictService.getPredictData(stockRealDTOS, true);
+        log.info("正在将股票代码为[{}]的数据保存到数据库...", tsCode);
+        log.info("共有[{}]条预测数据", predictData.size());
+//        List<StockPredictDTO> predictDTOS = new ArrayList<>();
+        for (StockPredictVO predictVO : predictData) {
+            StockPredictDTO stockPredictDTO = new StockPredictDTO();
+
+            long sid = stockService.querySidByTsCode(tsCode);
+            stockPredictDTO.setSid(sid);
+
+            String date1 = predictVO.getDate();
+            Instant instant = getTrulyPredictDate(date1);
+            stockPredictDTO.setTradeDate(instant);
+
+            stockPredictDTO.setTsCode(predictVO.getSymbol());
+            stockPredictDTO.setOpen(predictVO.getOpen());
+            stockPredictDTO.setClose(predictVO.getClose());
+            stockPredictDTO.setHigh(predictVO.getHigh());
+            stockPredictDTO.setLow(predictVO.getLow());
+            stockPredictDTO.setVol(predictVO.getVolume());
+            influxDBUtils.writePredictData(stockPredictDTO);
+//            predictDTOS.add(stockPredictDTO);
+        }
+//        StockPredictDTO stockPredictDTO = predictDTOS.get(predictDTOS.size() - 1);
+//        System.out.println("stockPredictDTO = " + stockPredictDTO);
+        log.info("股票代码为[{}]的股票的预测任务完成", tsCode);
+    }
+
+    private Instant getTrulyPredictDate(String oldDate) {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
+        LocalDate date = LocalDate.parse(oldDate, dtf);
+
+        while (isStockMarketDay(date)) {
+            date = date.plusDays(1);
+        }
+
+        return date.atStartOfDay().atZone(ZoneId.of("Asia/Shanghai")).toInstant();
+    }
+
+    private boolean isStockMarketDay(LocalDate date) {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter dtf2 = DateTimeFormatter.ofPattern("yyyy-MM");
+        String format = dtf2.format(date);
+        StockMarketDTO stockMarket = stockService.getStockMarket(format);
+        String marketData = stockMarket.getData();
+        int i = marketData.indexOf(dtf.format(date));
+        return i != -1;
+    }
+
+    @Test
+    public void testDeleteInfluxdbData() {
+        long sid = stockService.querySidByTsCode("000001.SZ");
+        influxDBUtils.deleteData("predict", sid,
+                OffsetDateTime.parse("2010-01-10T00:00:00+08:00"), OffsetDateTime.now());
     }
 }

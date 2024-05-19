@@ -82,10 +82,24 @@ public class StockPredictJobBean extends QuartzJobBean {
         }
     }
 
-    // TODO 处理预测的日历(或者在数据处理服务器那处理)
     private Instant getTrulyPredictDate(String oldDate) {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
         LocalDate date = LocalDate.parse(oldDate, dtf);
+
+        while (isStockMarketDay(date)) {
+            date = date.plusDays(1);
+        }
+
         return date.atStartOfDay().atZone(ZoneId.of("Asia/Shanghai")).toInstant();
+    }
+
+    private boolean isStockMarketDay(LocalDate date) {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter dtf2 = DateTimeFormatter.ofPattern("yyyy-MM");
+        String format = dtf2.format(date);
+        StockMarketDTO stockMarket = stockService.getStockMarket(format);
+        String marketData = stockMarket.getData();
+        int i = marketData.indexOf(dtf.format(date));
+        return i != -1;
     }
 }

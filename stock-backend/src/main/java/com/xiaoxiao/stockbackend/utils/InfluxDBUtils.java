@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;
 import com.influxdb.client.WriteApiBlocking;
+import com.influxdb.client.domain.DeletePredicateRequest;
 import com.influxdb.client.domain.WritePrecision;
 import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
@@ -23,6 +24,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -192,5 +194,13 @@ public class InfluxDBUtils {
     public void writePredictData(StockPredictDTO stockPredictDTO) {
         WriteApiBlocking writeApiBlocking = influxDBClient.getWriteApiBlocking();
         writeApiBlocking.writeMeasurement(influxBucket, influxOrg, WritePrecision.NS, stockPredictDTO);
+    }
+
+    public void deleteData(String measurement, long sid, OffsetDateTime start, OffsetDateTime end) {
+        DeletePredicateRequest deletePredicateRequest = new DeletePredicateRequest();
+        deletePredicateRequest.setPredicate("_measurement=\"" + measurement + "\" AND sid=\"" + sid + "\"");
+        deletePredicateRequest.start(start);
+        deletePredicateRequest.stop(end);
+        influxDBClient.getDeleteApi().delete(deletePredicateRequest, influxBucket, influxOrg);
     }
 }

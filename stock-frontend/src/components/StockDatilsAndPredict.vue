@@ -222,7 +222,7 @@ const copyIp = ip => copy(ip).then(() => ElMessage.success('成功复制股票�
       <stock-daily-history-for-favorite style="margin-top: 20px" :data="details.truly.list"/>
     </div>
     <div class="title" style="margin-top: 20px">
-      <i class="fa-solid fa-chart-line"></i>
+      <i class="fa-solid fa-chart-column"></i>
       近期预测信息
     </div>
     <el-divider style="margin: 10px 0;"/>
