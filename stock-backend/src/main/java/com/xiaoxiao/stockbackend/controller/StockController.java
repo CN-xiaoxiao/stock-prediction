@@ -100,8 +100,8 @@ public class StockController {
     @GetMapping("/favoriteList")
     public RestBean<List<StockBasicsVO>> queryFavoriteList(@RequestAttribute("id") int id) {
         List<StockBasicsVO> list = stockService.getStockBasicsListForFavorite(id);
-        return list == null || list.isEmpty() ? RestBean.failure(401, "请求参数有误")
-                : RestBean.success(list);
+        if (list == null) return RestBean.failure(401, "请求参数有误");
+        else return RestBean.success(list);
     }
 
     @PostMapping("/favorite")
@@ -120,8 +120,11 @@ public class StockController {
     @PutMapping("/favorite")
     public RestBean<String> addFavorite(@RequestHeader("Authorization") String token,
                                          @RequestParam @Valid String tsCode) {
-        boolean flag = stockService.addFavorite(tsCode, token);
-        return flag ? RestBean.success() : RestBean.failure(400, "请求失败");
+        String flag = stockService.addFavorite(tsCode, token);
+        if (flag != null && !flag.isEmpty()) {
+            return RestBean.failure(400, flag);
+        }
+        return RestBean.success();
     }
 
     @GetMapping("/favorite-delete")

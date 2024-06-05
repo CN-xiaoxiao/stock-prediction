@@ -3,6 +3,7 @@ package com.xiaoxiao.stockbackend;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.csvreader.CsvWriter;
+import com.github.pagehelper.PageInfo;
 import com.influxdb.client.domain.DeletePredicateRequest;
 import com.xiaoxiao.stockbackend.entity.dto.Favorite;
 import com.xiaoxiao.stockbackend.entity.dto.StockBasicsDTO;
@@ -490,5 +491,124 @@ class StockBackendApplicationTests {
         long sid = stockService.querySidByTsCode("000001.SZ");
         influxDBUtils.deleteData("predict", sid,
                 OffsetDateTime.parse("2010-01-10T00:00:00+08:00"), OffsetDateTime.now());
+    }
+
+    /**
+     * 获取进行实验的股票列表：
+     * 取值界限为：12年前、8年前、4年前，即12年、16年、20年。比例为：4:1:2:3，共选取20支股票
+     * 002386.SZ 300055.SZ 002259.SZ 002440.SZ 000488.SZ 300185.SZ 600121.SH 600779.SH
+     * ***********
+     * 002779.SZ 300387.SZ
+     * ***********
+     * 002837.SZ 603192.SH 002952.SZ 603063.SH
+     * ***********
+     * 301182.SZ 688626.SH 688163.SH 001228.SZ 301439.SZ 832469.BJ
+     */
+    @Test
+    public void testGetTestStockList() {
+        List<String> list1 = new ArrayList<>();
+        List<String> list2 = new ArrayList<>();
+        List<String> list3 = new ArrayList<>();
+        List<String> list4 = new ArrayList<>();
+
+        List<String> result1 = new ArrayList<>(8);
+        List<String> result2 = new ArrayList<>(4);
+        List<String> result3 = new ArrayList<>(4);
+        List<String> result4 = new ArrayList<>(4);
+
+        int sampleSize = 20;
+
+        double period1Ratio = 0.4;
+        double period2Ratio = 0.1;
+        double period3Ratio = 0.2;
+        double period4Ratio = 0.3;
+
+        List<StockBasicsDTO> list = stockService.selectAllBasicsStockData(1, 6000);
+
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+        for (StockBasicsDTO dto : list) {
+            String listDate = dto.getListDate();
+            LocalDate localDate = LocalDate.parse(listDate, dtf);
+            if (localDate.isBefore(LocalDate.parse("2012-01-01"))) {
+                list1.add(dto.getTsCode());
+            } else if (localDate.isAfter(LocalDate.parse("2012-01-01")) && localDate.isBefore(LocalDate.parse("2016-01-01"))) {
+                list2.add(dto.getTsCode());
+            } else if (localDate.isAfter(LocalDate.parse("2016-01-01")) && localDate.isBefore(LocalDate.parse("2020-01-01"))) {
+                list3.add(dto.getTsCode());
+            } else if (localDate.isBefore(LocalDate.parse("2024-01-01"))) {
+                list4.add(dto.getTsCode());
+            }
+        }
+
+        System.out.println("list1.size() = " + list1.size());
+        System.out.println("list2.size() = " + list2.size());
+        System.out.println("list3.size() = " + list3.size());
+        System.out.println("list4.size() = " + list4.size());
+
+        Random random = new Random();
+        int period1Samples = (int) Math.round(sampleSize * period1Ratio);
+        int period2Samples = (int) Math.round(sampleSize * period2Ratio);
+        int period3Samples = (int) Math.round(sampleSize * period3Ratio);
+        int period4Samples = sampleSize - period1Samples - period2Samples - period3Samples;
+
+        // 抽取period1时间段的样本
+        for (int i = 0; i < period1Samples; i++) {
+            int index = random.nextInt(list1.size());
+            result1.add(list1.get(index));
+        }
+
+        // 抽取period2时间段的样本
+        for (int i = 0; i < period2Samples; i++) {
+            int index = random.nextInt(list2.size());
+            result2.add(list2.get(index));
+        }
+
+        // 抽取period3时间段的样本
+        for (int i = 0; i < period3Samples; i++) {
+            int index = random.nextInt(list3.size());
+            result3.add(list3.get(index));
+        }
+
+        // 抽取period4时间段的样本
+        for (int i = 0; i < period4Samples; i++) {
+            int index = random.nextInt(list4.size());
+            result4.add(list4.get(index));
+        }
+
+        result1.forEach(System.out::println);
+        System.out.println("***********");
+        result2.forEach(System.out::println);
+        System.out.println("***********");
+        result3.forEach(System.out::println);
+        System.out.println("***********");
+        result4.forEach(System.out::println);
+    }
+
+    @Test
+    public void testGetTestStockDataCSV() {
+        List<String> result1 = List.of("002386.SZ", "300055.SZ", "002259.SZ", "002440.SZ",
+                "000488.SZ", "300185.SZ", "600121.SH", "600779.SH");
+        List<String> result2 = List.of("002779.SZ", "300387.SZ");
+        List<String> result3 = List.of("002837.SZ", "603192.SH", "002952.SZ", "603063.SH");
+        List<String> result4 = List.of("301182.SZ", "688626.SH", "688163.SH", "001228.SZ", "301439.SZ", "832469.BJ");
+
+        List<String> list = new ArrayList<>();
+        list.addAll(result1);
+        list.addAll(result2);
+        list.addAll(result3);
+        list.addAll(result4);
+
+        for (String s : list) {
+            List<StockBasicsDTO> stockBasicsDTO = stockService.getStockBasicsDTO(s);
+            stockBasicsDTO.forEach(System.out::println);
+            System.out.println("***************");
+        }
+
+//        for (String s : list) {
+//            log.info("正在保存股票代码为【{}】的股票交易数据", s);
+//            this.doCSVWrite(s);
+//            log.info("股票代码为【{}】的股票交易数据已保存完毕", s);
+//        }
     }
 }

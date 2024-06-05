@@ -26,7 +26,7 @@ public interface StockService {
     FavoriteVO queryFavoriteByUid(int uid);
     boolean updateFavorite(Favorite favorite);
     boolean insertFavorite(Favorite favorite);
-    boolean addFavorite(String tsCode, String token);
+    String addFavorite(String tsCode, String token);
 
     List<StockBasicsVO> getStockBasicsListForFavorite(int id);
 

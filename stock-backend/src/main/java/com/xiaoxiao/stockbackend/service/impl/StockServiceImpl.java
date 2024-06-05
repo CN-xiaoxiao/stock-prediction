@@ -30,6 +30,7 @@ import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -67,6 +68,8 @@ public class StockServiceImpl implements StockService {
     @Resource
     JwtUtils jwtUtils;
 
+    @Value("${spring.stock.favorite.max}")
+    int favoriteMax;
 
     /**
      * 分页查询股票基础数据
@@ -285,7 +288,13 @@ public class StockServiceImpl implements StockService {
         FavoriteVO vo = new FavoriteVO();
         Favorite favorite = stockFavoriteMapper.queryFavoriteByUserID(uid);
         BeanUtils.copyProperties(favorite, vo);
-        List<String> list = List.of(favorite.getFavoriteList().split(","));
+        List<String> list;
+        if (favorite.getFavoriteList() == null || favorite.getFavoriteList().isEmpty()) {
+            list = new ArrayList<>();
+        } else {
+            list = List.of(favorite.getFavoriteList().split(","));
+        }
+
         vo.setFavoriteList(list);
         return vo;
     }
@@ -310,28 +319,40 @@ public class StockServiceImpl implements StockService {
     }
 
     @Override
-    public boolean addFavorite(String tsCode, String token) {
+    public String addFavorite(String tsCode, String token) {
         int id = jwtUtils.getId(token);
-        if (!isAccount(id)) return false;
+        if (!isAccount(id)) return "请求参数错误！";
         Favorite favorite = stockFavoriteMapper.queryFavoriteByUserID(id);
-        if (favorite == null) return false;
+        if (favorite == null) return "请求测试错误！";
 
         String favoriteList = favorite.getFavoriteList();
-        String[] split = favoriteList.split(",");
-        Set<String> tsCodeSet = new HashSet<>(List.of(split));
-        tsCodeSet.add(tsCode);
-        StringBuilder sb = new StringBuilder();
-        tsCodeSet.forEach(v -> sb.append(v).append(","));
-        sb.deleteCharAt(sb.length() - 1);
-        favorite.setFavoriteList(sb.toString());
 
-        return stockFavoriteMapper.updateFavorite(favorite);
+        if (favoriteList == null || favoriteList.isEmpty()) {
+            favorite.setFavoriteList(tsCode);
+        } else {
+            String[] split = favoriteList.split(",");
+
+            if (split.length >= favoriteMax) {
+                return "收藏夹已达到上限";
+            }
+            Set<String> tsCodeSet = new HashSet<>(List.of(split));
+            tsCodeSet.add(tsCode);
+            StringBuilder sb = new StringBuilder();
+            tsCodeSet.forEach(v -> sb.append(v).append(","));
+            sb.deleteCharAt(sb.length() - 1);
+            favorite.setFavoriteList(sb.toString());
+        }
+
+        return stockFavoriteMapper.updateFavorite(favorite) ? "" : "服务器内部异常";
     }
 
     @Override
     public List<StockBasicsVO> getStockBasicsListForFavorite(int id) {
         FavoriteVO favoriteVO = this.queryFavoriteByUid(id);
+        if (favoriteVO == null) return null;
+
         List<String> favoriteList = favoriteVO.getFavoriteList();
+        if (favoriteList == null) return new ArrayList<>();
 
         List<StockBasicsVO> result = new ArrayList<>(favoriteList.size());
         for (String s : favoriteList) {
@@ -358,15 +379,21 @@ public class StockServiceImpl implements StockService {
         if (favorite == null) return false;
 
         String favoriteList = favorite.getFavoriteList();
+        if (favoriteList == null || favoriteList.isEmpty()) return false;
+
         String[] split = favoriteList.split(",");
 
-        StringBuilder sb = new StringBuilder();
-        for (String s : split) {
-            if (s.equals(tsCode)) continue;
-            sb.append(s).append(",");
+        if (split.length == 1) {
+            favorite.setFavoriteList(null);
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (String s : split) {
+                if (s.equals(tsCode)) continue;
+                sb.append(s).append(",");
+            }
+            sb.deleteCharAt(sb.length() - 1);
+            favorite.setFavoriteList(sb.toString());
         }
-        sb.deleteCharAt(sb.length() - 1);
-        favorite.setFavoriteList(sb.toString());
         return stockFavoriteMapper.updateFavorite(favorite);
     }
 

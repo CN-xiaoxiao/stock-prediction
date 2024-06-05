@@ -133,8 +133,8 @@ public class QuartzConfiguration {
 
     @Bean
     public Trigger predictStockCronTrigger(@Qualifier("predictStockJobDetail") JobDetail detail) {
-        // 每天早上4点30分开始执行 '0 30 4 * * ? *'
-        CronScheduleBuilder cron = CronScheduleBuilder.cronSchedule("0 24 10 * * ? *");
+        // 每天晚上11点30分开始执行 '0 30 11 * * ? *'
+        CronScheduleBuilder cron = CronScheduleBuilder.cronSchedule("0 30 11 * * ? *");
         return TriggerBuilder.newTrigger()
                 .forJob(detail)
                 .withIdentity("predict-stock-trigger")

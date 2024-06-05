@@ -36,7 +36,7 @@ public class ServerConfiguration implements ApplicationRunner {
         ConnectionConfig config = this.readConfiguration();
 
         if (config == null)
-//            config = this.registerToServer();
+            config = this.registerToServer();
         log.info("已与服务端建立连接...");
         return config;
     }

@@ -55,6 +55,9 @@ spring:
     data-treating:
       url: http://localhost
       port: 8888
+  stock:
+    favorite:
+      max: 20
 pagehelper:
   helper-dialect: mysql
   reasonable: true

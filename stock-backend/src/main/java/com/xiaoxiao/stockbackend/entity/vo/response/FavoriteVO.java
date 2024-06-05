@@ -2,6 +2,7 @@ package com.xiaoxiao.stockbackend.entity.vo.response;
 
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
